@@ -5,77 +5,80 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>撮影進捗管理</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=DM+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap');
 
   :root {
-    --bg: #f0f2f5;
+    --bg: #f2f2f0;
     --surface: #ffffff;
-    --surface2: #f5f6f8;
-    --border: #dde0e8;
-    --accent: #4f46e5;
-    --accent3: #0891b2;
-    --text: #1a1d2e;
-    --text2: #5a6070;
-    --text3: #9aa0b0;
-    --ok: #16a34a;
-    --warn: #b45309;
-    --danger: #dc2626;
+    --surface2: #f7f7f5;
+    --border: #e2e2de;
+    --accent: #75777a;
+    --accent-dark: #4a4c4f;
+    --accent-light: #a8a9ab;
+    --accent3: #75777a;
+    --text: #2a2a28;
+    --text2: #75777a;
+    --text3: #b0b0ae;
+    --ok: #4a7c59;
+    --warn: #8a6a2a;
+    --danger: #8a3a3a;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 13px; }
+  body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 13px; letter-spacing: 0.01em; }
 
-  .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 20px; display: flex; align-items: center; gap: 16px; position: sticky; top: 0; z-index: 100; }
-  .header-title { font-size: 15px; font-weight: 700; letter-spacing: 0.05em; }
-  .header-title span { color: var(--accent); }
+  .header { background: var(--text); border-bottom: none; padding: 14px 24px; display: flex; align-items: center; gap: 16px; position: sticky; top: 0; z-index: 100; }
+  .header-title { font-size: 13px; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; color: #ffffff; }
+  .header-title span { color: var(--accent-light); }
   .header-badges { display: flex; gap: 8px; margin-left: auto; flex-wrap: wrap; }
-  .badge { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; font-size: 11px; font-family: 'DM Mono', monospace; display: flex; gap: 6px; align-items: center; }
-  .badge b { color: var(--accent); }
-  .badge.warn b { color: var(--warn); }
-  .badge.danger b { color: var(--danger); }
-  .badge.ok b { color: var(--ok); }
+  .badge { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 3px; padding: 4px 10px; font-size: 10px; font-family: 'DM Mono', monospace; display: flex; gap: 6px; align-items: center; letter-spacing: 0.05em; color: rgba(255,255,255,0.7); }
+  .badge b { color: #ffffff; font-weight: 600; }
+  .badge.warn b { color: #e8c87a; }
+  .badge.danger b { color: #e87a7a; }
+  .badge.ok b { color: #7ac48a; }
 
-  .tabs { display: flex; gap: 2px; padding: 12px 20px 0; border-bottom: 1px solid var(--border); background: var(--surface); flex-wrap: wrap; }
-  .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; font-size: 12px; font-weight: 500; color: var(--text2); border: 1px solid transparent; border-bottom: none; transition: all 0.15s; background: transparent; }
-  .tab:hover { color: var(--text); background: var(--surface2); }
-  .tab.active { color: var(--accent); background: var(--bg); border-color: var(--border); border-bottom-color: var(--bg); }
+  .tabs { display: flex; gap: 0; padding: 0 24px; border-bottom: 1px solid var(--border); background: var(--surface); flex-wrap: wrap; }
+  .tab { padding: 12px 18px; border-radius: 0; cursor: pointer; font-size: 11px; font-weight: 500; color: var(--text3); border: none; border-bottom: 2px solid transparent; transition: all 0.2s; background: transparent; letter-spacing: 0.06em; text-transform: uppercase; }
+  .tab:hover { color: var(--text2); border-bottom-color: var(--accent-light); }
+  .tab.active { color: var(--text); border-bottom: 2px solid var(--accent); font-weight: 600; }
 
-  .filters { padding: 12px 20px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; background: var(--bg); }
-  .filter-select, .filter-input { background: #fff; border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 6px 10px; font-size: 12px; font-family: 'Noto Sans JP', sans-serif; outline: none; }
+  .filters { padding: 14px 24px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; background: var(--bg); border-bottom: 1px solid var(--border); }
+  .filter-select, .filter-input { background: #fff; border: 1px solid var(--border); color: var(--text); border-radius: 2px; padding: 6px 10px; font-size: 11px; font-family: 'Noto Sans JP', sans-serif; outline: none; }
   .filter-select:focus, .filter-input:focus { border-color: var(--accent); }
-  .filter-btn { padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text2); font-size: 12px; cursor: pointer; transition: all 0.15s; font-family: 'Noto Sans JP', sans-serif; }
+  .filter-btn { padding: 6px 12px; border-radius: 2px; border: 1px solid var(--border); background: var(--surface); color: var(--text2); font-size: 11px; cursor: pointer; transition: all 0.15s; font-family: 'Noto Sans JP', sans-serif; letter-spacing: 0.03em; }
   .filter-btn:hover, .filter-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
-  .csv-btn { padding: 6px 14px; background: #16a34a; color: white; border: none; border-radius: 6px; font-size: 12px; cursor: pointer; font-family: 'Noto Sans JP', sans-serif; font-weight: 500; }
-  .csv-btn:hover { background: #15803d; }
-  .add-btn { margin-left: auto; padding: 6px 14px; background: var(--accent); color: white; border: none; border-radius: 6px; font-size: 12px; cursor: pointer; font-family: 'Noto Sans JP', sans-serif; font-weight: 500; }
-  .add-btn:hover { background: #4338ca; }
+  .csv-btn { padding: 6px 14px; background: var(--accent-dark); color: white; border: none; border-radius: 2px; font-size: 11px; cursor: pointer; font-family: 'Noto Sans JP', sans-serif; font-weight: 500; letter-spacing: 0.05em; }
+  .csv-btn:hover { background: var(--text); }
+  .add-btn { margin-left: auto; padding: 6px 16px; background: var(--text); color: white; border: none; border-radius: 2px; font-size: 11px; cursor: pointer; font-family: 'Noto Sans JP', sans-serif; font-weight: 500; letter-spacing: 0.08em; }
+  .add-btn:hover { background: var(--accent); }
 
-  .table-wrap { padding: 0 20px 20px; overflow-x: auto; }
+  .table-wrap { padding: 0 24px 24px; overflow-x: auto; }
   table { width: 100%; border-collapse: separate; border-spacing: 0 4px; min-width: 900px; }
-  thead th { padding: 8px 10px; text-align: left; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; color: var(--text3); text-transform: uppercase; white-space: nowrap; }
-  tbody tr { background: var(--surface); transition: background 0.1s; }
-  tbody tr:hover { background: var(--surface2); }
-  tbody td { padding: 9px 10px; vertical-align: middle; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-  tbody td:first-child { border-left: 1px solid var(--border); border-radius: 8px 0 0 8px; }
-  tbody td:last-child { border-right: 1px solid var(--border); border-radius: 0 8px 8px 0; }
+  thead th { padding: 10px 10px; text-align: left; font-size: 9px; font-weight: 600; letter-spacing: 0.12em; color: var(--text3); text-transform: uppercase; white-space: nowrap; user-select: none; }
+  thead th:hover { color: var(--accent); }
+  tbody tr { background: var(--surface); transition: background 0.15s; border-bottom: 1px solid var(--border); }
+  tbody tr:hover { background: #f5f5f3; }
+  tbody td { padding: 10px 10px; vertical-align: middle; border: none; }
+  tbody td:first-child { }
+  tbody td:last-child { }
 
   .fac { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; letter-spacing: 0.03em; white-space: nowrap; }
-  .fac-8F { background: #dbeafe; color: #1d4ed8; }
-  .fac-8C { background: #dcfce7; color: #15803d; }
-  .fac-3SH { background: #fee2e2; color: #b91c1c; }
-  .fac-3SA { background: #f3e8ff; color: #7e22ce; }
-  .fac-KH { background: #fef3c7; color: #b45309; }
-  .fac-8L { background: #cffafe; color: #0e7490; }
+  .fac-8F { background: #e8eaec; color: #4a4c4f; border: 1px solid #c8cacc; }
+  .fac-8C { background: #e8ecea; color: #3a5a45; border: 1px solid #c0ccc4; }
+  .fac-3SH { background: #eee8e8; color: #6a3a3a; border: 1px solid #d0c0c0; }
+  .fac-3SA { background: #edeaf2; color: #5a4a7a; border: 1px solid #ccc8d8; }
+  .fac-KH { background: #f0ece0; color: #6a5a30; border: 1px solid #d0c8a8; }
+  .fac-8L { background: #e0ecf0; color: #3a6070; border: 1px solid #b8ccd4; }
 
   .st { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 4px; font-size: 11px; white-space: nowrap; }
-  .st-done { background: #dcfce7; color: #15803d; }
-  .st-pending { background: #fef3c7; color: #b45309; }
-  .st-none { background: var(--surface2); color: var(--text3); }
-  .st-waiting { background: #e0e7ff; color: #4338ca; }
-  .st-skip { background: #f0f9ff; color: #0369a1; }
+  .st-done { background: #e8f0ea; color: #4a7c59; }
+  .st-pending { background: #f5ecd8; color: #8a6a2a; }
+  .st-none { background: transparent; color: var(--text3); border: 1px solid var(--border); }
+  .st-waiting { background: #eaeaf0; color: #6a6a8a; }
+  .st-skip { background: #eef2f5; color: #75777a; }
 
   .amount { font-family: 'DM Mono', monospace; font-size: 12px; white-space: nowrap; }
-  .amount-cam { color: var(--accent); }
-  .amount-model { color: var(--accent3); }
+  .amount-cam { color: var(--accent-dark); }
+  .amount-model { color: var(--text2); }
   .amount-zero { color: var(--text3); }
   .date-col { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text2); white-space: nowrap; }
   .type-col { color: var(--text2); font-size: 11px; }
@@ -84,55 +87,55 @@
   .note-col:focus { outline: 2px solid var(--accent); color: var(--text); white-space: normal; overflow: visible; background: #fff; }
   .delivery-col { font-size: 11px; color: var(--text2); max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-  .edit-btn, .del-btn { padding: 3px 8px; border-radius: 4px; border: 1px solid var(--border); background: transparent; color: var(--text3); font-size: 11px; cursor: pointer; transition: all 0.15s; }
-  .edit-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .edit-btn, .del-btn { padding: 3px 8px; border-radius: 2px; border: 1px solid var(--border); background: transparent; color: var(--text3); font-size: 10px; cursor: pointer; transition: all 0.15s; letter-spacing: 0.03em; }
+  .edit-btn:hover { color: var(--text); border-color: var(--text); }
   .del-btn:hover { color: var(--danger); border-color: var(--danger); }
 
   /* MODAL */
   .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center; }
   .overlay.open { display: flex; }
-  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; width: 560px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
-  .modal-title { font-size: 15px; font-weight: 700; margin-bottom: 20px; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 2px; padding: 28px; width: 560px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.12); }
+  .modal-title { font-size: 13px; font-weight: 600; margin-bottom: 20px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text2); border-bottom: 1px solid var(--border); padding-bottom: 12px; }
   .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .form-group { display: flex; flex-direction: column; gap: 4px; }
   .form-group.full { grid-column: 1 / -1; }
   label { font-size: 11px; color: var(--text2); }
-  input, select, textarea { background: #fff; border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 7px 10px; font-size: 12px; font-family: 'Noto Sans JP', sans-serif; outline: none; width: 100%; }
-  input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+  input, select, textarea { background: #fff; border: 1px solid var(--border); color: var(--text); border-radius: 2px; padding: 7px 10px; font-size: 12px; font-family: 'Noto Sans JP', sans-serif; outline: none; width: 100%; }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); outline: none; }
   .form-section { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
   .form-section-title { font-size: 11px; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px; }
   .status-item { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; background: var(--surface2); border-radius: 6px; margin-bottom: 6px; }
   .status-item label { font-size: 12px; color: var(--text); margin: 0; }
   .status-toggle { display: flex; gap: 2px; }
   .stbtn { padding: 3px 10px; border-radius: 4px; border: 1px solid var(--border); background: transparent; font-size: 11px; cursor: pointer; color: var(--text3); font-family: 'Noto Sans JP', sans-serif; transition: all 0.1s; }
-  .stbtn.active-done { background: #dcfce7; color: #15803d; border-color: #86efac; }
-  .stbtn.active-pending { background: #fef3c7; color: #b45309; border-color: #fcd34d; }
-  .stbtn.active-skip { background: #f0f9ff; color: #0369a1; border-color: #7dd3fc; }
+  .stbtn.active-done { background: #e8f0ea; color: #4a7c59; border-color: #b0ceb8; }
+  .stbtn.active-pending { background: #f5ecd8; color: #8a6a2a; border-color: #d4c090; }
+  .stbtn.active-skip { background: #eef2f5; color: #75777a; border-color: #b8bec4; }
   .stbtn.active-none { background: var(--surface2); color: var(--text3); }
   .modal-actions { display: flex; gap: 8px; margin-top: 20px; justify-content: flex-end; }
-  .btn-primary { padding: 8px 20px; background: var(--accent); color: white; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; font-family: 'Noto Sans JP', sans-serif; }
-  .btn-secondary { padding: 8px 16px; background: transparent; color: var(--text2); border: 1px solid var(--border); border-radius: 6px; font-size: 13px; cursor: pointer; font-family: 'Noto Sans JP', sans-serif; }
+  .btn-primary { padding: 8px 24px; background: var(--text); color: white; border: none; border-radius: 2px; font-size: 12px; cursor: pointer; font-family: 'Noto Sans JP', sans-serif; letter-spacing: 0.05em; }
+  .btn-secondary { padding: 8px 16px; background: transparent; color: var(--text2); border: 1px solid var(--border); border-radius: 2px; font-size: 12px; cursor: pointer; font-family: 'Noto Sans JP', sans-serif; }
 
   /* SUMMARY */
   .summary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; padding: 20px; }
-  .summary-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
-  .summary-card-title { font-size: 11px; color: var(--text3); margin-bottom: 6px; letter-spacing: 0.05em; }
-  .summary-card-value { font-size: 22px; font-family: 'DM Mono', monospace; font-weight: 500; }
-  .summary-card-value.accent { color: var(--accent); }
+  .summary-card { background: var(--surface); border: 1px solid var(--border); border-radius: 2px; padding: 18px; }
+  .summary-card-title { font-size: 9px; color: var(--text3); margin-bottom: 8px; letter-spacing: 0.12em; text-transform: uppercase; }
+  .summary-card-value { font-size: 22px; font-family: 'DM Mono', monospace; font-weight: 400; }
+  .summary-card-value.accent { color: var(--accent-dark); }
   .summary-card-value.warn { color: var(--warn); }
   .summary-card-value.ok { color: var(--ok); }
   .summary-card-value.danger { color: var(--danger); }
 
   /* FY TABS */
   .fy-tabs { display: flex; gap: 4px; margin-bottom: 16px; }
-  .fy-tab { padding: 6px 16px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text2); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.15s; font-family: 'Noto Sans JP', sans-serif; }
+  .fy-tab { padding: 6px 16px; border-radius: 2px; border: 1px solid var(--border); background: var(--surface); color: var(--text2); font-size: 11px; font-weight: 500; cursor: pointer; transition: all 0.15s; font-family: 'Noto Sans JP', sans-serif; letter-spacing: 0.05em; }
   .fy-tab:hover { background: var(--surface2); }
-  .fy-tab.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .fy-tab.active { background: var(--text); color: white; border-color: var(--text); }
 
   /* MONTHLY */
   .monthly-wrap { padding: 20px; }
   .month-block { margin-bottom: 16px; }
-  .month-header { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; user-select: none; transition: background 0.1s; }
+  .month-header { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 2px; cursor: pointer; user-select: none; transition: background 0.1s; }
   .month-header:hover { background: var(--surface2); }
   .month-header.open { border-radius: 8px 8px 0 0; border-bottom-color: transparent; }
   .month-label { font-size: 14px; font-weight: 700; font-family: 'DM Mono', monospace; color: var(--accent); min-width: 80px; }
@@ -151,12 +154,12 @@
 
   /* PAYMENT CYCLE */
   .payment-wrap { padding: 20px; }
-  .pay-cam-block { margin-bottom: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .pay-cam-block { margin-bottom: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 2px; overflow: hidden; }
   .pay-cam-header { padding: 14px 16px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); background: var(--surface2); flex-wrap: wrap; }
   .pay-cam-name { font-size: 15px; font-weight: 700; }
   .pay-cam-total { margin-left: auto; font-family: 'DM Mono', monospace; font-size: 14px; color: var(--accent); font-weight: 600; }
   .pay-cycles { padding: 12px 16px; display: flex; flex-direction: column; gap: 12px; }
-  .pay-cycle { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .pay-cycle { border: 1px solid var(--border); border-radius: 2px; overflow: hidden; }
   .pay-cycle-header { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--surface2); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
   .cycle-label { font-size: 12px; font-weight: 600; color: var(--text); }
   .cycle-amount { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--accent); }
@@ -179,12 +182,61 @@
 
   .empty { padding: 40px; text-align: center; color: var(--text3); font-size: 13px; }
   .cam-table { padding: 20px; }
+
+  /* INVOICE TAB */
+  .invoice-tab-wrap { display: flex; gap: 20px; padding: 20px; }
+  .invoice-sidebar { width: 280px; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px; }
+  .invoice-preview { flex: 1; }
+  .inv-section { background: var(--surface); border: 1px solid var(--border); border-radius: 2px; padding: 16px; }
+  .inv-section-title { font-size: 11px; font-weight: 600; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px; }
+  .inv-form-row { display: flex; flex-direction: column; gap: 3px; margin-bottom: 8px; }
+  .inv-form-row label { font-size: 11px; color: var(--text2); }
+  .inv-form-row input, .inv-form-row select, .inv-form-row textarea { font-size: 12px; padding: 6px 8px; background: #fff; border: 1px solid var(--border); border-radius: 5px; color: var(--text); font-family: 'Noto Sans JP', sans-serif; outline: none; width: 100%; }
+  .inv-form-row input:focus, .inv-form-row select:focus { border-color: var(--accent); }
+  .inv-item-row { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
+  .inv-item-row input { flex: 1; }
+  .inv-item-row input.qty { width: 50px; flex: none; }
+  .inv-item-row input.price { width: 90px; flex: none; }
+  .inv-del-row { padding: 2px 6px; border: 1px solid var(--border); border-radius: 4px; background: transparent; color: var(--text3); cursor: pointer; font-size: 11px; }
+  .inv-del-row:hover { color: var(--danger); border-color: var(--danger); }
+  .inv-add-row { width: 100%; padding: 6px; border: 1px dashed var(--border); border-radius: 5px; background: transparent; color: var(--text3); font-size: 12px; cursor: pointer; font-family: 'Noto Sans JP', sans-serif; margin-top: 4px; }
+  .inv-add-row:hover { border-color: var(--accent); color: var(--accent); }
+  .print-btn { width: 100%; padding: 10px; background: var(--text); color: white; border: none; border-radius: 2px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'Noto Sans JP', sans-serif; letter-spacing: 0.08em; }
+  .print-btn:hover { background: var(--accent); }
+  .switch-doc-btn { width: 100%; padding: 8px; background: transparent; border: 1px solid var(--border); border-radius: 2px; font-size: 11px; cursor: pointer; font-family: 'Noto Sans JP', sans-serif; color: var(--text2); letter-spacing: 0.05em; }
+  .switch-doc-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* INVOICE PRINT DOCUMENT */
+  .inv-doc {
+    background: white; width: 210mm; height: 297mm; margin: 0 auto;
+    padding: 10mm 12mm; box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+    font-family: 'Noto Sans JP', sans-serif; font-size: 8.5pt; color: #111;
+    box-sizing: border-box; line-height: 1.4; overflow: hidden;
+  }
+  .id-title { text-align: center; font-size: 18pt; font-weight: 900; letter-spacing: 0.3em; margin-bottom: 2mm; }
+  .id-issueline { text-align: right; font-size: 8pt; margin-bottom: 3mm; color: #333; }
+  .id-header { display: flex; justify-content: space-between; gap: 4mm; margin-bottom: 3mm; }
+  .id-to { flex: 1; }
+  .id-to-company { font-size: 13pt; font-weight: 700; border-bottom: 2px solid #111; padding-bottom: 1.5mm; margin-bottom: 1mm; }
+  .id-to-addr { font-size: 7pt; color: #555; margin-bottom: 1mm; }
+  .id-from { font-size: 7.5pt; text-align: right; line-height: 1.9; }
+  .id-greeting { font-size: 8pt; margin-bottom: 2mm; }
+  .id-amount-box { margin-bottom: 3mm; }
+  .id-amount-label { background: #2f6fa8; color: white; padding: 1.5mm 4mm; font-size: 8pt; text-align: center; }
+  .id-amount-val { background: #d6e4f0; text-align: center; font-size: 22pt; font-weight: 700; padding: 2mm 4mm; letter-spacing: 0.05em; }
+
+  @media print {
+    body > *:not(#print-area) { display: none !important; }
+    #print-area { display: block !important; }
+    .inv-doc { box-shadow: none; margin: 0; padding: 10mm 12mm; }
+    @page { size: A4; margin: 0; }
+  }
 </style>
 </head>
 <body>
 
 <div class="header">
-  <div class="header-title">📷 <span>撮影</span>進捗管理</div>
+  <div class="header-title">8HOTEL &nbsp;<span style="color:rgba(255,255,255,0.3);margin:0 6px">|</span>&nbsp; <span>撮影</span>進捗管理</div>
   <div class="header-badges">
     <div class="badge danger"><span>稟議未</span><b id="badge-ringi">0</b></div>
     <div class="badge warn"><span>振込未</span><b id="badge-furikomi">0</b></div>
@@ -199,6 +251,7 @@
   <div class="tab" onclick="switchTab('payment')">支払いサイクル</div>
   <div class="tab" onclick="switchTab('summary')">サマリー</div>
   <div class="tab" onclick="switchTab('camera')">カメラマン別</div>
+  <div class="tab" onclick="switchTab('invoice')">📄 見積書・請求書</div>
 </div>
 
 <!-- LIST TAB -->
@@ -227,11 +280,17 @@
   <div class="table-wrap">
     <table>
       <thead>
-        <tr>
-          <th>日付</th><th>施設</th><th>種別</th><th>カメラマン</th>
-          <th>金額(税抜)</th><th>稟議</th><th>振込</th><th>請求書</th><th>経理</th><th>支払確認</th>
-          <th>モデル</th><th>モデル金額(税込)</th><th>モデル稟議</th><th>モデル請求書</th><th>モデル支払</th>
-          <th>納品</th><th>備考</th><th></th>
+        <tr id="sort-header">
+          <th onclick="setSort('date')" style="cursor:pointer">日付 <span id="si-date"></span></th>
+          <th onclick="setSort('fac')" style="cursor:pointer">施設 <span id="si-fac"></span></th>
+          <th onclick="setSort('type')" style="cursor:pointer">種別 <span id="si-type"></span></th>
+          <th onclick="setSort('cam')" style="cursor:pointer">カメラマン <span id="si-cam"></span></th>
+          <th onclick="setSort('camFee')" style="cursor:pointer">金額(税抜) <span id="si-camFee"></span></th>
+          <th>稟議</th><th>振込</th><th>請求書</th><th>経理共有</th><th>支払確認</th>
+          <th onclick="setSort('model')" style="cursor:pointer">モデル <span id="si-model"></span></th>
+          <th onclick="setSort('modelFee')" style="cursor:pointer">モデル金額(税込) <span id="si-modelFee"></span></th>
+          <th>モデル稟議</th><th>モデル請求書</th><th>モデル支払</th>
+          <th>稟議番号</th><th>納品</th><th>備考</th><th></th>
         </tr>
       </thead>
       <tbody id="tbody"></tbody>
@@ -307,6 +366,135 @@
   </div>
 </div>
 
+<!-- INVOICE TAB -->
+<div id="tab-invoice" style="display:none">
+  <div class="invoice-tab-wrap">
+    <div class="invoice-sidebar">
+      <div class="inv-section">
+        <div class="inv-section-title">書類設定</div>
+        <div class="inv-form-row">
+          <label>書類種別</label>
+          <select id="inv-doctype" onchange="onDoctypeChange()">
+            <option value="見積書">見積書</option>
+            <option value="請求書">請求書</option>
+          </select>
+        </div>
+        <div class="inv-form-row">
+          <label>税区分</label>
+          <select id="inv-taxtype" onchange="updateInvoicePreview()">
+            <option value="gensen">源泉徴収税（10.21%）</option>
+            <option value="shohi">消費税（10%）</option>
+          </select>
+        </div>
+        <div class="inv-form-row">
+          <label>発行日</label>
+          <input type="date" id="inv-date" oninput="updateInvoicePreview()">
+        </div>
+        <div class="inv-form-row" id="inv-due-wrap">
+          <label>お支払い期限</label>
+          <input type="date" id="inv-due" oninput="updateInvoicePreview()">
+        </div>
+        <div class="inv-form-row">
+          <label>案件から読込</label>
+          <select id="inv-load-item" onchange="loadFromItem()">
+            <option value="">案件を選択...</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="inv-section">
+        <div class="inv-section-title" style="display:flex;align-items:center;justify-content:space-between">
+          発行者情報
+          <button onclick="openProfileManager()" style="font-size:10px;padding:2px 8px;border:1px solid var(--border);border-radius:2px;background:transparent;cursor:pointer;color:var(--text2)">📋 マスタ管理</button>
+        </div>
+        <div class="inv-form-row">
+          <label>氏名（登録済から選択）</label>
+          <select id="inv-profile-sel" onchange="applyProfile()">
+            <option value="">-- 選択または直接入力 --</option>
+          </select>
+        </div>
+        <div class="inv-form-row"><label>氏名</label><input id="inv-from-name" oninput="updateInvoicePreview()"></div>
+        <div class="inv-form-row"><label>郵便番号</label><input id="inv-from-zip" oninput="updateInvoicePreview()" placeholder="〒000-0000"></div>
+        <div class="inv-form-row"><label>住所</label><input id="inv-from-addr" oninput="updateInvoicePreview()"></div>
+        <div class="inv-form-row"><label>建物名・部屋番号</label><input id="inv-from-bldg" oninput="updateInvoicePreview()"></div>
+        <div class="inv-form-row"><label>電話番号</label><input id="inv-from-tel" oninput="updateInvoicePreview()"></div>
+      </div>
+
+      <div class="inv-section">
+        <div class="inv-section-title">振込先（氏名選択で自動反映）</div>
+        <div class="inv-form-row"><label>銀行名</label><input id="inv-bank-name" oninput="updateInvoicePreview()"></div>
+        <div class="inv-form-row"><label>支店名</label><input id="inv-bank-branch" oninput="updateInvoicePreview()"></div>
+        <div class="inv-form-row"><label>口座種別</label>
+          <select id="inv-bank-type" onchange="updateInvoicePreview()"><option>普通</option><option>当座</option></select>
+        </div>
+        <div class="inv-form-row"><label>口座番号</label><input id="inv-bank-no" oninput="updateInvoicePreview()"></div>
+        <div class="inv-form-row"><label>口座名義</label><input id="inv-bank-holder" oninput="updateInvoicePreview()"></div>
+      </div>
+
+      <div class="inv-section">
+        <div class="inv-section-title">明細 <span style="font-size:10px;color:var(--text3);font-weight:400">内容 / 数量 / 単価</span></div>
+        <div id="inv-items"></div>
+        <button class="inv-add-row" onclick="addInvItem()">＋ 行を追加</button>
+      </div>
+
+      <div class="inv-section">
+        <div class="inv-section-title">備考</div>
+        <div class="inv-form-row"><textarea id="inv-remarks" rows="3" oninput="updateInvoicePreview()" placeholder="月末締め翌月末振込"></textarea></div>
+      </div>
+
+      <button class="switch-doc-btn" onclick="saveInvoiceProfile()">💾 発行者情報を保存</button>
+      <button class="print-btn" onclick="printInvoice()">🖨 印刷 / PDF出力</button>
+    </div>
+
+    <div class="invoice-preview" id="invoice-preview-wrap">
+      <div class="inv-doc" id="inv-doc"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PRINT AREA -->
+<div id="print-area" style="display:none"></div>
+
+<!-- PROFILE MANAGER MODAL -->
+<div class="overlay" id="profile-overlay" onclick="closeProfileManager()">
+  <div class="modal" onclick="event.stopPropagation()" style="width:640px">
+    <div class="modal-title">発行者マスタ管理</div>
+    <div style="display:flex;gap:16px">
+      <!-- List -->
+      <div style="width:180px;flex-shrink:0">
+        <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:8px">登録済み</div>
+        <div id="profile-list" style="display:flex;flex-direction:column;gap:4px;max-height:400px;overflow-y:auto"></div>
+        <button onclick="newProfile()" style="margin-top:8px;width:100%;padding:6px;border:1px dashed var(--border);border-radius:2px;background:transparent;font-size:11px;cursor:pointer;color:var(--text3);font-family:'Noto Sans JP',sans-serif">＋ 新規追加</button>
+      </div>
+      <!-- Form -->
+      <div style="flex:1" id="profile-form-wrap">
+        <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:8px">詳細</div>
+        <div class="form-grid">
+          <div class="form-group full"><label>氏名</label><input id="pf-name"></div>
+          <div class="form-group"><label>郵便番号</label><input id="pf-zip" placeholder="〒000-0000"></div>
+          <div class="form-group"><label>電話番号</label><input id="pf-tel"></div>
+          <div class="form-group full"><label>住所</label><input id="pf-addr"></div>
+          <div class="form-group full"><label>建物名・部屋番号</label><input id="pf-bldg"></div>
+          <div class="form-group"><label>銀行名</label><input id="pf-bank-name"></div>
+          <div class="form-group"><label>支店名</label><input id="pf-bank-branch"></div>
+          <div class="form-group"><label>口座種別</label>
+            <select id="pf-bank-type"><option>普通</option><option>当座</option></select>
+          </div>
+          <div class="form-group"><label>口座番号</label><input id="pf-bank-no"></div>
+          <div class="form-group full"><label>口座名義</label><input id="pf-bank-holder"></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:16px">
+          <button class="btn-primary" onclick="saveProfile()" style="flex:1">保存</button>
+          <button class="del-btn" onclick="deleteProfile()" style="padding:8px 14px">削除</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions" style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px">
+      <button class="btn-secondary" onclick="closeProfileManager()">閉じる</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL -->
 <div class="overlay" id="overlay" onclick="closeModalBg(event)">
   <div class="modal" onclick="event.stopPropagation()">
@@ -336,6 +524,7 @@
         <input id="m-model-custom" placeholder="名前を入力" style="margin-top:4px;display:none">
       </div>
       <div class="form-group"><label>モデル費用（税込）</label><input type="number" id="m-modelfee" value="0"></div>
+      <div class="form-group"><label>稟議承認番号</label><input id="m-ringi-no" placeholder="例：2026-001"></div>
       <div class="form-group full"><label>納品状況</label><input id="m-delivery" placeholder="例：写真：済/動画④：未"></div>
       <div class="form-group full"><label>備考</label><textarea id="m-note" rows="2"></textarea></div>
     </div>
@@ -439,6 +628,22 @@ function facChip(fac) { return `<span class="fac fac-${fac}">${fac}</span>`; }
 // LIST
 // ============================================================
 let pendingOnly = false, editingId = null;
+let sortKey = 'date', sortAsc = true;
+
+function setSort(key) {
+  if (sortKey === key) { sortAsc = !sortAsc; }
+  else { sortKey = key; sortAsc = true; }
+  updateSortIndicators();
+  renderList();
+}
+
+function updateSortIndicators() {
+  ['date','fac','type','cam','camFee','model','modelFee'].forEach(k => {
+    const el = document.getElementById('si-' + k);
+    if (!el) return;
+    el.textContent = k === sortKey ? (sortAsc ? '▲' : '▼') : '';
+  });
+}
 
 function getFiltered() {
   const fac = document.getElementById('f-facility').value;
@@ -457,7 +662,12 @@ function getFiltered() {
       if (!hp) return false;
     }
     return true;
-  }).sort((a,b)=>a.date<b.date?-1:1);
+  }).sort((a,b) => {
+    let va = a[sortKey], vb = b[sortKey];
+    if (typeof va === 'number') return sortAsc ? va-vb : vb-va;
+    va = String(va||''); vb = String(vb||'');
+    return sortAsc ? va.localeCompare(vb, 'ja') : vb.localeCompare(va, 'ja');
+  });
 }
 
 function renderList() {
@@ -476,6 +686,7 @@ function renderList() {
     <td class="model-col">${d.model||'—'}</td>
     <td class="amount amount-model">${d.modelFee>0?'¥'+d.modelFee.toLocaleString():'<span class="amount-zero">—</span>'}</td>
     <td>${stF(d.mod_s[0],d.id,'mod_s',0)}</td><td>${stF(d.mod_s[2],d.id,'mod_s',2)}</td><td>${stF(d.mod_s[3],d.id,'mod_s',3)}</td>
+    <td style="font-size:11px;font-family:'DM Mono',monospace;color:var(--text2)">${d.ringiNo||'—'}</td>
     <td class="delivery-col" title="${d.delivery||''}">${d.delivery||'—'}</td>
     <td class="note-col" contenteditable="true" onblur="saveNote(${d.id},this)" title="${d.note||''}">${d.note||''}</td>
     <td style="white-space:nowrap">
@@ -503,7 +714,7 @@ function togglePending() { pendingOnly=!pendingOnly; document.getElementById('fb
 function exportCSV() {
   const filtered = getFiltered();
   const sl = s => s==='done'?'済':s==='pending'?'未':s==='waiting'?'待ち':'—';
-  const headers = ['日付','施設','種別','カメラマン','カメラマン費用(税抜)','稟議','振込依頼','請求書受領','経理依頼','支払確認','モデル','モデル費用(税込)','モデル稟議','モデル現場共有','モデル請求書','モデル支払','納品状況','備考'];
+  const headers = ['日付','施設','種別','カメラマン','カメラマン費用(税抜)','稟議','振込依頼','請求書受領','経理共有','支払確認','モデル','モデル費用(税込)','モデル稟議','モデル現場共有','モデル請求書','モデル支払','稟議承認番号','納品状況','備考'];
   const rows = filtered.map(d => [
     d.date,d.fac,d.type,d.cam,d.camFee,
     sl(d.cam_s[0]),sl(d.cam_s[1]),sl(d.cam_s[2]),sl(d.cam_s[3]),sl(d.cam_s[4]),
@@ -785,7 +996,7 @@ function renderCamera() {
 // ============================================================
 // MODAL
 // ============================================================
-const CAM_LABELS=['稟議','振込依頼','請求書受領','経理依頼','支払確認'];
+const CAM_LABELS=['稟議','振込依頼','請求書受領','経理共有','支払確認'];
 const MOD_LABELS=['稟議','現場共有','請求書受領','支払'];
 let camStatuses=['none','none','none','none','none'], modStatuses=['none','none','none','none'];
 
@@ -872,6 +1083,7 @@ function openModal(id=null) {
     document.getElementById('m-camfee').value=d.camFee;
     populateSelect('m-model', getModelList(), d.model||'');
     document.getElementById('m-modelfee').value=d.modelFee;
+    document.getElementById('m-ringi-no').value=d.ringiNo||'';
     document.getElementById('m-delivery').value=d.delivery;
     document.getElementById('m-note').value=d.note;
     camStatuses=[...d.cam_s]; modStatuses=[...d.mod_s];
@@ -882,7 +1094,7 @@ function openModal(id=null) {
     populateSelect('m-cam', getCamList(), '');
     populateSelect('m-type', getTypeList(), 'SNS');
     populateSelect('m-model', getModelList(), '');
-    ['m-delivery','m-note'].forEach(i=>document.getElementById(i).value='');
+    ['m-ringi-no','m-delivery','m-note'].forEach(i=>document.getElementById(i).value='');
     document.getElementById('m-camfee').value=0; document.getElementById('m-modelfee').value=0;
     camStatuses=['none','none','none','none','none']; modStatuses=['none','none','none','none'];
   }
@@ -902,6 +1114,7 @@ function saveItem() {
     camFee:parseInt(document.getElementById('m-camfee').value)||0,
     model:getSelectVal('m-model'),
     modelFee:parseInt(document.getElementById('m-modelfee').value)||0,
+    ringiNo:document.getElementById('m-ringi-no').value,
     delivery:document.getElementById('m-delivery').value,
     note:document.getElementById('m-note').value,
     cam_s:[...camStatuses],mod_s:[...modStatuses],
@@ -915,7 +1128,7 @@ function deleteItem(id) { if(!confirm('この案件を削除しますか？')) r
 // ============================================================
 // TABS
 // ============================================================
-const TABS=['list','monthly','payment','summary','camera'];
+const TABS=['list','monthly','payment','summary','camera','invoice'];
 function switchTab(tab) {
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',TABS[i]===tab));
   TABS.forEach(t=>document.getElementById('tab-'+t).style.display=t===tab?'':'none');
@@ -923,6 +1136,7 @@ function switchTab(tab) {
   if(tab==='payment') renderPayment();
   if(tab==='summary') renderSummary();
   if(tab==='camera') renderCamera();
+  if(tab==='invoice') renderInvoiceTab();
 }
 function populateCamFilter() {
   const cams = [...new Set(data.flatMap(d=>d.cam.split('・').map(c=>c.trim())))].filter(Boolean).sort();
@@ -980,6 +1194,405 @@ function saveNote(id, el) {
   d.note = el.innerText.trim();
   saveData();
 }
+
+
+// ============================================================
+// INVOICE
+// ============================================================
+let invItems = [{ desc: '', qty: 1, price: 0 }];
+
+function renderInvoiceTab() {
+  // Load saved profile
+  const profile = JSON.parse(localStorage.getItem('inv_profile') || '{}');
+  if (profile.fromName) document.getElementById('inv-from-name').value = profile.fromName;
+  if (profile.fromZip)  document.getElementById('inv-from-zip').value  = profile.fromZip;
+  if (profile.fromAddr) document.getElementById('inv-from-addr').value = profile.fromAddr;
+  if (profile.fromTel)  document.getElementById('inv-from-tel').value  = profile.fromTel;
+  if (profile.fromBldg) document.getElementById('inv-from-bldg').value = profile.fromBldg;
+  // Auto-set tax type based on current doctype
+  var taxSel = document.getElementById('inv-taxtype');
+  var docEl = document.getElementById('inv-doctype');
+  if (docEl && taxSel) taxSel.value = docEl.value === '見積書' ? 'gensen' : 'shohi';
+  if (profile.bankName)   document.getElementById('inv-bank-name').value   = profile.bankName;
+  if (profile.bankBranch) document.getElementById('inv-bank-branch').value = profile.bankBranch;
+  if (profile.bankType)   document.getElementById('inv-bank-type').value   = profile.bankType;
+  if (profile.bankNo)     document.getElementById('inv-bank-no').value     = profile.bankNo;
+  if (profile.bankHolder) document.getElementById('inv-bank-holder').value = profile.bankHolder;
+
+  // Set today
+  if (!document.getElementById('inv-date').value)
+    document.getElementById('inv-date').value = new Date().toISOString().slice(0,10);
+
+  // Populate load-from-item select
+  const sel = document.getElementById('inv-load-item');
+  sel.innerHTML = '<option value="">案件を選択...</option>'
+    + [...data].sort((a,b)=>b.date.localeCompare(a.date))
+      .map(d => '<option value="'+d.id+'">'+d.date+' '+d.fac+' '+d.type+' / '+d.cam+'</option>').join('');
+
+  populateProfileSelect();
+  renderInvItems();
+  updateInvoicePreview();
+}
+
+function saveInvoiceProfile() {
+  const profile = {
+    fromName: document.getElementById('inv-from-name').value,
+    fromZip:  document.getElementById('inv-from-zip').value,
+    fromAddr: document.getElementById('inv-from-addr').value,
+    fromTel:  document.getElementById('inv-from-tel').value,
+    fromBldg: document.getElementById('inv-from-bldg').value,
+    bankName:   document.getElementById('inv-bank-name').value,
+    bankBranch: document.getElementById('inv-bank-branch').value,
+    bankType:   document.getElementById('inv-bank-type').value,
+    bankNo:     document.getElementById('inv-bank-no').value,
+    bankHolder: document.getElementById('inv-bank-holder').value,
+  };
+  localStorage.setItem('inv_profile', JSON.stringify(profile));
+  alert('発行者情報を保存しました');
+}
+
+function loadFromItem() {
+  const id = parseInt(document.getElementById('inv-load-item').value);
+  if (!id) return;
+  const d = data.find(x => x.id === id);
+  if (!d) return;
+  const dateStr = d.date.replace(/-/g,'/');
+  const desc = dateStr + '（' + ['月','火','水','木','金','土','日'][new Date(d.date).getDay()] + '）' + ' ' + d.fac + ' ' + d.type + ' 撮影協力費（交通費込）';
+  invItems = [{ desc, qty: 1, price: d.modelFee > 0 ? d.modelFee : d.camFee }];
+  renderInvItems();
+  updateInvoicePreview();
+}
+
+function renderInvItems() {
+  document.getElementById('inv-items').innerHTML = invItems.map((item, i) =>
+    '<div class="inv-item-row">'
+    + '<input value="'+item.desc.replace(/"/g,'&quot;')+'" oninput="invItems['+i+'].desc=this.value;updateInvoicePreview()" placeholder="内容">'
+    + '<input class="qty" type="number" value="'+item.qty+'" oninput="invItems['+i+'].qty=parseFloat(this.value)||1;updateInvoicePreview()" min="1">'
+    + '<input class="price" type="number" value="'+item.price+'" oninput="invItems['+i+'].price=parseFloat(this.value)||0;updateInvoicePreview()">'
+    + '<button class="inv-del-row" onclick="removeInvItem('+i+')">✕</button>'
+    + '</div>'
+  ).join('');
+}
+
+function addInvItem() {
+  invItems.push({ desc: '', qty: 1, price: 0 });
+  renderInvItems();
+  updateInvoicePreview();
+}
+
+function removeInvItem(i) {
+  invItems.splice(i, 1);
+  if (!invItems.length) invItems = [{ desc: '', qty: 1, price: 0 }];
+  renderInvItems();
+  updateInvoicePreview();
+}
+
+function calcInvoice() {
+  var taxtype = document.getElementById('inv-taxtype') ? document.getElementById('inv-taxtype').value : 'gensen';
+  var subtotal = invItems.reduce(function(s,it){ return s + it.qty * it.price; }, 0);
+  var tax, total;
+  if (taxtype === 'shohi') {
+    tax = Math.round(subtotal * 0.1);
+    total = subtotal + tax;
+  } else {
+    tax = Math.round(subtotal * 0.1021);
+    total = subtotal - tax;
+  }
+  return { subtotal: subtotal, tax: tax, total: total, taxtype: taxtype };
+}
+
+function fmtYen(n) { return '¥' + Math.round(n).toLocaleString(); }
+
+function onDoctypeChange() {
+  var doctype = document.getElementById('inv-doctype').value;
+  var taxSel = document.getElementById('inv-taxtype');
+  if (doctype === '見積書') {
+    taxSel.value = 'gensen';
+  } else {
+    taxSel.value = 'shohi';
+  }
+  updateInvoicePreview();
+}
+
+function updateInvoicePreview() {
+  var doctype    = document.getElementById('inv-doctype').value;
+  var taxtype    = document.getElementById('inv-taxtype').value;
+  var issueDate  = document.getElementById('inv-date').value.replace(/-/g,'/');
+  var dueDate    = document.getElementById('inv-due') ? document.getElementById('inv-due').value.replace(/-/g,'/') : '';
+  var fromName   = document.getElementById('inv-from-name').value;
+  var fromZip    = document.getElementById('inv-from-zip').value;
+  var fromAddr   = document.getElementById('inv-from-addr').value;
+  var fromBldg   = document.getElementById('inv-from-bldg').value;
+  var fromTel    = document.getElementById('inv-from-tel').value;
+  var bankName   = document.getElementById('inv-bank-name').value;
+  var bankBranch = document.getElementById('inv-bank-branch').value;
+  var bankType   = document.getElementById('inv-bank-type').value;
+  var bankNo     = document.getElementById('inv-bank-no').value;
+  var bankHolder = document.getElementById('inv-bank-holder').value;
+  var remarks    = document.getElementById('inv-remarks').value;
+
+  var calc = calcInvoice();
+  var subtotal = calc.subtotal, tax = calc.tax, total = calc.total;
+  var isSeikyu = (doctype === '請求書');
+  var isShohi  = (taxtype === 'shohi');
+  var actionWord = isSeikyu ? 'ご請求' : 'お見積り';
+  var taxLabel   = isShohi ? '消費税（10%）' : '源泉徴収税';
+  var taxSign    = isShohi ? '+' : '-';
+  var taxDisplay = isShohi ? fmtYen(tax) : '¥-' + Math.round(tax).toLocaleString();
+
+  // Detail rows (min 6 rows, with No.)
+  var rows = invItems.map(function(it, idx) {
+    var amt = it.qty * it.price;
+    return '<tr>'
+      + (isSeikyu ? '<td style="padding:2mm 2mm;border:1px solid #d8d8d6;font-size:8pt;text-align:center;width:8mm">' + (idx+1) + '</td>' : '')
+      + '<td style="padding:2mm 3mm;border:1px solid #d8d8d6;font-size:8.5pt">' + it.desc + '</td>'
+      + '<td style="padding:2mm 2mm;border:1px solid #d8d8d6;font-size:8.5pt;text-align:right;width:14mm">' + it.qty + '</td>'
+      + '<td style="padding:2mm 3mm;border:1px solid #d8d8d6;font-size:8.5pt;text-align:right;width:26mm">' + fmtYen(it.price) + '</td>'
+      + '<td style="padding:2mm 3mm;border:1px solid #d8d8d6;font-size:8.5pt;text-align:right;width:26mm">' + fmtYen(amt) + '</td>'
+      + '</tr>';
+  });
+  while (rows.length < 6) rows.push(
+    '<tr>'
+    + (isSeikyu ? '<td style="border:1px solid #d8d8d6;height:7.5mm;width:8mm"></td>' : '')
+    + '<td style="border:1px solid #d8d8d6;height:7.5mm"></td>'
+    + '<td style="border:1px solid #d8d8d6"></td>'
+    + '<td style="border:1px solid #d8d8d6"></td>'
+    + '<td style="border:1px solid #d8d8d6"></td>'
+    + '</tr>'
+  );
+
+  // Bank
+  var bankHtml = '';
+  if (bankName || bankBranch || bankNo || bankHolder) {
+    bankHtml =
+      '<table style="border-collapse:collapse;width:60%">'
+      + '<tr><td style="border:none;padding:1mm 3mm;font-size:8.5pt;width:20mm;color:#333">銀行名：</td><td style="border:none;padding:1mm 3mm;font-size:8.5pt">' + bankName + '</td></tr>'
+      + '<tr><td style="border:none;padding:1mm 3mm;font-size:8.5pt;color:#333">支店名：</td><td style="border:none;padding:1mm 3mm;font-size:8.5pt">' + bankBranch + '</td></tr>'
+      + '<tr><td style="border:none;padding:1mm 3mm;font-size:8.5pt;color:#333">口座種別：</td><td style="border:none;padding:1mm 3mm;font-size:8.5pt">　' + bankType + '</td></tr>'
+      + '<tr><td style="border:none;padding:1mm 3mm;font-size:8.5pt;color:#333">口座番号：</td><td style="border:none;padding:1mm 3mm;font-size:8.5pt">' + bankNo + '</td></tr>'
+      + '<tr><td style="border:none;padding:1mm 3mm;font-size:8.5pt;color:#333">口座名義：</td><td style="border:none;padding:1mm 3mm;font-size:8.5pt">' + bankHolder + '</td></tr>'
+      + (dueDate ? '<tr><td style="border:none;padding:1mm 3mm;font-size:8.5pt;color:#333">お支払い期限：</td><td style="border:none;padding:1mm 3mm;font-size:8.5pt">' + dueDate + '</td></tr>' : '')
+      + '</table>';
+  }
+
+  document.getElementById('inv-doc').innerHTML =
+    // タイトル帯
+    '<div style="background:#75777a;color:white;text-align:center;padding:3mm 6mm;font-size:18pt;font-weight:900;letter-spacing:0.4em;margin-bottom:5mm">'
+    + doctype + '</div>'
+    // 請求日
+    + '<div style="text-align:right;font-size:8.5pt;margin-bottom:5mm">'
+    + (isSeikyu ? '請求日：' : '発行日　') + issueDate + '</div>'
+    // 宛先 ＋ 発行者
+    + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5mm;gap:8mm">'
+    +   '<div style="flex:1">'
+    +     '<div style="font-size:7.5pt;color:#555;margin-bottom:1mm">〒251-0035　神奈川県藤沢市片瀬海岸1-13-18</div>'
+    +     '<div style="font-size:16pt;font-weight:900;border-bottom:2.5px solid #222;padding-bottom:2mm;margin-bottom:1mm">湘南レーベル株式会社　御中</div>'
+    +     (isSeikyu ? '<div style="font-size:8pt;color:#555;margin-top:2mm">ホテル事業部　御中</div>' : '')
+    +   '</div>'
+    +   '<div style="font-size:8.5pt;line-height:2;text-align:left;min-width:140px">'
+    +     '<div><span style="display:inline-block;width:16mm;color:#555">名　前</span>' + fromName + '</div>'
+    +     '<div><span style="display:inline-block;width:16mm;color:#555">〒</span>' + fromZip + '</div>'
+    +     '<div><span style="display:inline-block;width:16mm;color:#555">住　所：</span>' + fromAddr + '</div>'
+    +     (fromBldg ? '<div><span style="display:inline-block;width:16mm;color:#555"></span>' + fromBldg + '</div>' : '')
+    +     '<div><span style="display:inline-block;width:16mm;color:#555">☎</span>' + fromTel + '</div>'
+    +   '</div>'
+    + '</div>'
+    // 挨拶文
+    + '<div style="font-size:8.5pt;margin-bottom:3mm">下記の通り、' + actionWord + '申し上げます。</div>'
+    // 請求金額ボックス
+    + '<div style="border:1.5px solid #75777a;margin-bottom:5mm;overflow:hidden;display:inline-block;min-width:200px">'
+    +   '<div style="background:#75777a;color:white;text-align:center;padding:1.5mm 6mm;font-size:8.5pt">' + (isSeikyu ? '請求金額' : 'お見積り金額（税込）') + '</div>'
+    +   '<div style="text-align:center;font-size:22pt;font-weight:700;padding:3mm 8mm">' + fmtYen(total) + '</div>'
+    + '</div>'
+    // 明細テーブル
+    + '<table style="width:100%;border-collapse:collapse;margin-bottom:0">'
+    +   '<thead><tr>'
+    +     '<th style="background:#75777a;color:white;padding:2mm;border:1px solid #75777a;font-size:8.5pt;text-align:center;width:8mm">No.</th>'
+    +     '<th style="background:#75777a;color:white;padding:2mm 3mm;border:1px solid #75777a;font-size:8.5pt;text-align:center">商品名　／　品名</th>'
+    +     '<th style="background:#75777a;color:white;padding:2mm;border:1px solid #75777a;font-size:8.5pt;text-align:center;width:14mm">数量</th>'
+    +     '<th style="background:#75777a;color:white;padding:2mm 3mm;border:1px solid #75777a;font-size:8.5pt;text-align:center;width:26mm">単価</th>'
+    +     '<th style="background:#75777a;color:white;padding:2mm 3mm;border:1px solid #75777a;font-size:8.5pt;text-align:center;width:26mm">金額</th>'
+    +   '</tr></thead>'
+    +   '<tbody>' + rows.join('') + '</tbody>'
+    + '</table>'
+    // 小計・税・合計（右寄せ）
+    + '<div style="display:flex;justify-content:flex-end;margin-bottom:5mm">'
+    +   '<table style="border-collapse:collapse">'
+    +     '<tr>'
+    +       '<td style="padding:1.5mm 4mm;border:1px solid #d8d8d6;background:#f5f5f3;text-align:right;font-size:8.5pt;font-weight:700;width:40mm">小　計</td>'
+    +       '<td style="padding:1.5mm 4mm;border:1px solid #d8d8d6;text-align:right;font-size:8.5pt;width:30mm">' + fmtYen(subtotal) + '</td>'
+    +     '</tr>'
+    +     '<tr>'
+    +       '<td style="padding:1.5mm 4mm;border:1px solid #d8d8d6;background:#f5f5f3;text-align:right;font-size:8.5pt;font-weight:700;color:' + (isShohi?'#222':'#cc0000') + '">' + taxLabel + '</td>'
+    +       '<td style="padding:1.5mm 4mm;border:1px solid #d8d8d6;text-align:right;font-size:8.5pt;color:' + (isShohi?'#222':'#cc0000') + '">' + taxDisplay + '</td>'
+    +     '</tr>'
+    +     '<tr>'
+    +       '<td style="padding:1.5mm 4mm;border:1px solid #d8d8d6;background:#eaeae8;text-align:right;font-size:8.5pt;font-weight:700">合　計（税込）</td>'
+    +       '<td style="padding:1.5mm 4mm;border:1px solid #d8d8d6;background:#eaeae8;text-align:right;font-size:8.5pt;font-weight:700">' + fmtYen(total) + '</td>'
+    +     '</tr>'
+    +   '</table>'
+    + '</div>'
+    // 備考欄
+    + '<div style="border:1px solid #d8d8d6;margin-bottom:5mm">'
+    +   '<div style="background:#f5f5f3;padding:1.5mm 3mm;font-size:8pt;font-weight:700;border-bottom:1px solid #b0c4d8;color:#333">備考欄</div>'
+    +   '<div style="padding:2mm 3mm;font-size:8.5pt;min-height:12mm;white-space:pre-wrap">' + (remarks||'') + '</div>'
+    + '</div>'
+    // 振込先
+    + (bankHtml ? '<div style="font-size:8.5pt;font-weight:700;margin-bottom:2mm">振込先</div>' + bankHtml : '');
+}
+
+function printInvoice() {
+  const docHtml = document.getElementById('inv-doc').outerHTML;
+  const printArea = document.getElementById('print-area');
+  printArea.innerHTML = '<style>'
+    + '@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=DM+Mono:wght@400;500&display=swap");'
+    + 'body{font-family:"Noto Sans JP",sans-serif;margin:0;padding:0;}'
+    + document.querySelector('style').innerHTML
+    + '</style>' + docHtml;
+  printArea.style.display = 'block';
+  window.print();
+  setTimeout(() => { printArea.style.display = 'none'; printArea.innerHTML = ''; }, 1000);
+}
+
+
+
+// ============================================================
+// ISSUER PROFILES (発行者マスタ)
+// ============================================================
+function loadProfiles() {
+  return JSON.parse(localStorage.getItem('inv_profiles') || '[]');
+}
+function saveProfiles(profiles) {
+  localStorage.setItem('inv_profiles', JSON.stringify(profiles));
+}
+
+let editingProfileIdx = null;
+
+function populateProfileSelect() {
+  var profiles = loadProfiles();
+  var sel = document.getElementById('inv-profile-sel');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">-- 選択または直接入力 --</option>'
+    + profiles.map(function(p, i) {
+        return '<option value="' + i + '">' + p.name + '</option>';
+      }).join('');
+}
+
+function applyProfile() {
+  var sel = document.getElementById('inv-profile-sel');
+  var idx = parseInt(sel.value);
+  if (isNaN(idx)) return;
+  var profiles = loadProfiles();
+  var p = profiles[idx];
+  if (!p) return;
+  document.getElementById('inv-from-name').value    = p.name    || '';
+  document.getElementById('inv-from-zip').value     = p.zip     || '';
+  document.getElementById('inv-from-addr').value    = p.addr    || '';
+  document.getElementById('inv-from-bldg').value    = p.bldg    || '';
+  document.getElementById('inv-from-tel').value     = p.tel     || '';
+  document.getElementById('inv-bank-name').value    = p.bankName    || '';
+  document.getElementById('inv-bank-branch').value  = p.bankBranch  || '';
+  document.getElementById('inv-bank-type').value    = p.bankType    || '普通';
+  document.getElementById('inv-bank-no').value      = p.bankNo      || '';
+  document.getElementById('inv-bank-holder').value  = p.bankHolder  || '';
+  updateInvoicePreview();
+}
+
+function openProfileManager() {
+  var profiles = loadProfiles();
+  renderProfileList(profiles);
+  if (profiles.length > 0) {
+    loadProfileForm(0);
+  } else {
+    clearProfileForm();
+  }
+  document.getElementById('profile-overlay').classList.add('open');
+}
+
+function closeProfileManager() {
+  document.getElementById('profile-overlay').classList.remove('open');
+  populateProfileSelect();
+}
+
+function renderProfileList(profiles) {
+  document.getElementById('profile-list').innerHTML = profiles.map(function(p, i) {
+    return '<div onclick="loadProfileForm(' + i + ')" style="padding:7px 10px;border-radius:2px;cursor:pointer;font-size:12px;border:1px solid var(--border);background:' + (editingProfileIdx===i?'var(--accent)':'var(--surface)') + ';color:' + (editingProfileIdx===i?'white':'var(--text)') + '">'
+      + p.name
+      + '</div>';
+  }).join('');
+}
+
+function loadProfileForm(idx) {
+  editingProfileIdx = idx;
+  var profiles = loadProfiles();
+  var p = profiles[idx];
+  if (!p) return;
+  document.getElementById('pf-name').value         = p.name        || '';
+  document.getElementById('pf-zip').value          = p.zip         || '';
+  document.getElementById('pf-addr').value         = p.addr        || '';
+  document.getElementById('pf-bldg').value         = p.bldg        || '';
+  document.getElementById('pf-tel').value          = p.tel         || '';
+  document.getElementById('pf-bank-name').value    = p.bankName    || '';
+  document.getElementById('pf-bank-branch').value  = p.bankBranch  || '';
+  document.getElementById('pf-bank-type').value    = p.bankType    || '普通';
+  document.getElementById('pf-bank-no').value      = p.bankNo      || '';
+  document.getElementById('pf-bank-holder').value  = p.bankHolder  || '';
+  renderProfileList(profiles);
+}
+
+function clearProfileForm() {
+  editingProfileIdx = null;
+  ['pf-name','pf-zip','pf-addr','pf-bldg','pf-tel','pf-bank-name','pf-bank-branch','pf-bank-no','pf-bank-holder'].forEach(function(id) {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('pf-bank-type').value = '普通';
+}
+
+function newProfile() {
+  editingProfileIdx = null;
+  clearProfileForm();
+  renderProfileList(loadProfiles());
+  document.getElementById('pf-name').focus();
+}
+
+function saveProfile() {
+  var name = document.getElementById('pf-name').value.trim();
+  if (!name) { alert('氏名を入力してください'); return; }
+  var p = {
+    name:        name,
+    zip:         document.getElementById('pf-zip').value,
+    addr:        document.getElementById('pf-addr').value,
+    bldg:        document.getElementById('pf-bldg').value,
+    tel:         document.getElementById('pf-tel').value,
+    bankName:    document.getElementById('pf-bank-name').value,
+    bankBranch:  document.getElementById('pf-bank-branch').value,
+    bankType:    document.getElementById('pf-bank-type').value,
+    bankNo:      document.getElementById('pf-bank-no').value,
+    bankHolder:  document.getElementById('pf-bank-holder').value,
+  };
+  var profiles = loadProfiles();
+  if (editingProfileIdx !== null && editingProfileIdx < profiles.length) {
+    profiles[editingProfileIdx] = p;
+  } else {
+    profiles.push(p);
+    editingProfileIdx = profiles.length - 1;
+  }
+  saveProfiles(profiles);
+  renderProfileList(profiles);
+  alert('保存しました');
+}
+
+function deleteProfile() {
+  if (editingProfileIdx === null) return;
+  if (!confirm('このプロフィールを削除しますか？')) return;
+  var profiles = loadProfiles();
+  profiles.splice(editingProfileIdx, 1);
+  saveProfiles(profiles);
+  editingProfileIdx = null;
+  clearProfileForm();
+  renderProfileList(profiles);
+}
+
 
 function renderAll() { renderList(); populateCamFilter(); updateBadges(); }
 
