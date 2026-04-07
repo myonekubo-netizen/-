@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>撮影進捗管理</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #f0f2f5;
+    --surface: #ffffff;
+    --surface2: #f5f6f8;
+    --border: #dde0e8;
+    --accent: #4f46e5;
+    --accent3: #0891b2;
+    --text: #1a1d2e;
+    --text2: #5a6070;
+    --text3: #9aa0b0;
+    --ok: #16a34a;
+    --warn: #b45309;
+    --danger: #dc2626;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 13px; }
+
+  .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 20px; display: flex; align-items: center; gap: 16px; position: sticky; top: 0; z-index: 100; }
+  .header-title { font-size: 15px; font-weight: 700; letter-spacing: 0.05em; }
+  .header-title span { color: var(--accent); }
+  .header-badges { display: flex; gap: 8px; margin-left: auto; flex-wrap: wrap; }
+  .badge { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; font-size: 11px; font-family: 'DM Mono', monospace; display: flex; gap: 6px; align-items: center; }
+  .badge b { color: var(--accent); }
+  .badge.warn b { color: var(--warn); }
+  .badge.danger b { color: var(--danger); }
+  .badge.ok b { color: var(--ok); }
+
+  .tabs { display: flex; gap: 2px; padding: 12px 20px 0; border-bottom: 1px solid var(--border); background: var(--surface); flex-wrap: wrap; }
+  .tab { padding: 8px 16px; border-radius: 6px 6px 0 0; cursor: pointer; font-size: 12px; font-weight: 500; color: var(--text2); border: 1px solid transparent; border-bottom: none; transition: all 0.15s; background: transparent; }
+  .tab:hover { color: var(--text); background: var(--surface2); }
+  .tab.active { color: var(--accent); background: var(--bg); border-color: var(--border); border-bottom-color: var(--bg); }
+
+  .filters { padding: 12px 20px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; background: var(--bg); }
+  .filter-select, .filter-input { background: #fff; border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 6px 10px; font-size: 12px; font-family: 'Noto Sans JP', sans-serif; outline: none; }
+  .filter-select:focus, .filter-input:focus { border-color: var(--accent); }
+  .filter-btn { padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text2); font-size: 12px; cursor: pointer; transition: all 0.15s; font-family: 'Noto Sans JP', sans-serif; }
+  .filter-btn:hover, .filter-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .csv-btn { padding: 6px 14px; background: #16a34a; color: white; border: none; border-radius: 6px; font-size: 12px; cursor: pointer; font-family: 'Noto Sans JP', sans-serif; font-weight: 500; }
+  .csv-btn:hover { background: #15803d; }
+  .add-btn { margin-left: auto; padding: 6px 14px; background: var(--accent); color: white; border: none; border-radius: 6px; font-size: 12px; cursor: pointer; font-family: 'Noto Sans JP', sans-serif; font-weight: 500; }
+  .add-btn:hover { background: #4338ca; }
+
+  .table-wrap { padding: 0 20px 20px; overflow-x: auto; }
+  table { width: 100%; border-collapse: separate; border-spacing: 0 4px; min-width: 900px; }
+  thead th { padding: 8px 10px; text-align: left; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; color: var(--text3); text-transform: uppercase; white-space: nowrap; }
+  tbody tr { background: var(--surface); transition: background 0.1s; }
+  tbody tr:hover { background: var(--surface2); }
+  tbody td { padding: 9px 10px; vertical-align: middle; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  tbody td:first-child { border-left: 1px solid var(--border); border-radius: 8px 0 0 8px; }
+  tbody td:last-child { border-right: 1px solid var(--border); border-radius: 0 8px 8px 0; }
+
+  .fac { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; letter-spacing: 0.03em; white-space: nowrap; }
+  .fac-8F { background: #dbeafe; color: #1d4ed8; }
+  .fac-8C { background: #dcfce7; color: #15803d; }
+  .fac-3SH { background: #fee2e2; color: #b91c1c; }
+  .fac-3SA { background: #f3e8ff; color: #7e22ce; }
+  .fac-KH { background: #fef3c7; color: #b45309; }
+  .fac-8L { background: #cffafe; color: #0e7490; }
+
+  .st { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 4px; font-size: 11px; white-space: nowrap; }
+  .st-done { background: #dcfce7; color: #15803d; }
+  .st-pending { background: #fef3c7; color: #b45309; }
+  .st-none { background: var(--surface2); color: var(--text3); }
+  .st-waiting { background: #e0e7ff; color: #4338ca; }
+  .st-skip { background: #f0f9ff; color: #0369a1; }
+
+  .amount { font-family: 'DM Mono', monospace; font-size: 12px; white-space: nowrap; }
+  .amount-cam { color: var(--accent); }
+  .amount-model { color: var(--accent3); }
+  .amount-zero { color: var(--text3); }
+  .date-col { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text2); white-space: nowrap; }
+  .type-col { color: var(--text2); font-size: 11px; }
+  .model-col { font-size: 11px; color: var(--text2); }
+  .note-col { font-size: 11px; color: var(--text3); max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border-radius: 4px; padding: 2px 4px; }
+  .note-col:focus { outline: 2px solid var(--accent); color: var(--text); white-space: normal; overflow: visible; background: #fff; }
+  .delivery-col { font-size: 11px; color: var(--text2); max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .edit-btn, .del-btn { padding: 3px 8px; border-radius: 4px; border: 1px solid var(--border); background: transparent; color: var(--text3); font-size: 11px; cursor: pointer; transition: all 0.15s; }
+  .edit-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .del-btn:hover { color: var(--danger); border-color: var(--danger); }
+
+  /* MODAL */
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center; }
+  .overlay.open { display: flex; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; width: 560px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+  .modal-title { font-size: 15px; font-weight: 700; margin-bottom: 20px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .form-group.full { grid-column: 1 / -1; }
+  label { font-size: 11px; color: var(--text2); }
+  input, select, textarea { background: #fff; border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 7px 10px; font-size: 12px; font-family: 'Noto Sans JP', sans-serif; outline: none; width: 100%; }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+  .form-section { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+  .form-section-title { font-size: 11px; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px; }
+  .status-item { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; background: var(--surface2); border-radius: 6px; margin-bottom: 6px; }
+  .status-item label { font-size: 12px; color: var(--text); margin: 0; }
+  .status-toggle { display: flex; gap: 2px; }
+  .stbtn { padding: 3px 10px; border-radius: 4px; border: 1px solid var(--border); background: transparent; font-size: 11px; cursor: pointer; color: var(--text3); font-family: 'Noto Sans JP', sans-serif; transition: all 0.1s; }
+  .stbtn.active-done { background: #dcfce7; color: #15803d; border-color: #86efac; }
+  .stbtn.active-pending { background: #fef3c7; color: #b45309; border-color: #fcd34d; }
+  .stbtn.active-skip { background: #f0f9ff; color: #0369a1; border-color: #7dd3fc; }
+  .stbtn.active-none { background: var(--surface2); color: var(--text3); }
+  .modal-actions { display: flex; gap: 8px; margin-top: 20px; justify-content: flex-end; }
+  .btn-primary { padding: 8px 20px; background: var(--accent); color: white; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; font-family: 'Noto Sans JP', sans-serif; }
+  .btn-secondary { padding: 8px 16px; background: transparent; color: var(--text2); border: 1px solid var(--border); border-radius: 6px; font-size: 13px; cursor: pointer; font-family: 'Noto Sans JP', sans-serif; }
+
+  /* SUMMARY */
+  .summary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; padding: 20px; }
+  .summary-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .summary-card-title { font-size: 11px; color: var(--text3); margin-bottom: 6px; letter-spacing: 0.05em; }
+  .summary-card-value { font-size: 22px; font-family: 'DM Mono', monospace; font-weight: 500; }
+  .summary-card-value.accent { color: var(--accent); }
+  .summary-card-value.warn { color: var(--warn); }
+  .summary-card-value.ok { color: var(--ok); }
+  .summary-card-value.danger { color: var(--danger); }
+
+  /* FY TABS */
+  .fy-tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+  .fy-tab { padding: 6px 16px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text2); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.15s; font-family: 'Noto Sans JP', sans-serif; }
+  .fy-tab:hover { background: var(--surface2); }
+  .fy-tab.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+  /* MONTHLY */
+  .monthly-wrap { padding: 20px; }
+  .month-block { margin-bottom: 16px; }
+  .month-header { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; user-select: none; transition: background 0.1s; }
+  .month-header:hover { background: var(--surface2); }
+  .month-header.open { border-radius: 8px 8px 0 0; border-bottom-color: transparent; }
+  .month-label { font-size: 14px; font-weight: 700; font-family: 'DM Mono', monospace; color: var(--accent); min-width: 80px; }
+  .month-stats { font-size: 11px; color: var(--text2); display: flex; gap: 14px; flex-wrap: wrap; }
+  .month-toggle { color: var(--text3); font-size: 11px; margin-left: auto; transition: transform 0.2s; display: inline-block; }
+  .month-toggle.open { transform: rotate(180deg); }
+  .month-body { border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; overflow: hidden; display: none; }
+  .month-body.open { display: block; }
+  .month-body table { min-width: 700px; border-spacing: 0; }
+  .month-body thead th { background: var(--surface2); }
+  .month-body tbody tr { background: var(--surface); }
+  .month-body tbody tr:nth-child(even) { background: var(--surface2); }
+  .month-body tbody td { border: none; border-bottom: 1px solid var(--border); border-radius: 0 !important; border-left: none !important; border-right: none !important; }
+  .month-body tbody tr:last-child td { border-bottom: none; }
+  .month-body tbody tr:hover { background: #eef0ff; }
+
+  /* PAYMENT CYCLE */
+  .payment-wrap { padding: 20px; }
+  .pay-cam-block { margin-bottom: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .pay-cam-header { padding: 14px 16px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); background: var(--surface2); flex-wrap: wrap; }
+  .pay-cam-name { font-size: 15px; font-weight: 700; }
+  .pay-cam-total { margin-left: auto; font-family: 'DM Mono', monospace; font-size: 14px; color: var(--accent); font-weight: 600; }
+  .pay-cycles { padding: 12px 16px; display: flex; flex-direction: column; gap: 12px; }
+  .pay-cycle { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .pay-cycle-header { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--surface2); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .cycle-label { font-size: 12px; font-weight: 600; color: var(--text); }
+  .cycle-amount { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--accent); }
+  .cycle-status { margin-left: auto; }
+  .cycle-paid { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 4px; font-size: 11px; background: #dcfce7; color: #15803d; }
+  .cycle-unpaid { display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border-radius: 4px; font-size: 11px; background: #fef3c7; color: #b45309; cursor: pointer; border: 1px solid #fcd34d; font-family: 'Noto Sans JP', sans-serif; transition: background 0.15s; }
+  .cycle-unpaid:hover { background: #fde68a; }
+  .cycle-items { padding: 4px 0; }
+  .cycle-item { display: flex; align-items: center; gap: 10px; padding: 7px 14px; font-size: 12px; color: var(--text2); border-bottom: 1px solid var(--border); }
+  .cycle-item:last-child { border-bottom: none; }
+  .cycle-item .ci-date { font-family: 'DM Mono', monospace; font-size: 11px; width: 55px; flex-shrink: 0; }
+  .ci-edit-item { padding: 2px 6px; border: 1px solid var(--border); background: transparent; border-radius: 4px; color: var(--text3); font-size: 10px; cursor: pointer; margin-left: auto; }
+  .ci-edit-item:hover { color: var(--accent); border-color: var(--accent); }
+  .ci-del-item { padding: 2px 6px; border: 1px solid var(--border); background: transparent; border-radius: 4px; color: var(--text3); font-size: 10px; cursor: pointer; }
+  .ci-del-item:hover { color: var(--danger); border-color: var(--danger); }
+  .add-cycle-btn { margin: 0 16px 14px; padding: 7px 14px; background: transparent; border: 1px dashed var(--border); border-radius: 6px; color: var(--text3); font-size: 12px; cursor: pointer; width: calc(100% - 32px); font-family: 'Noto Sans JP', sans-serif; transition: all 0.15s; }
+  .add-cycle-btn:hover { border-color: var(--accent); color: var(--accent); background: #eef0ff; }
+  .add-cam-btn { margin: 0 20px 20px; padding: 8px 16px; background: transparent; border: 1px dashed var(--border); border-radius: 8px; color: var(--text3); font-size: 12px; cursor: pointer; font-family: 'Noto Sans JP', sans-serif; transition: all 0.15s; }
+  .add-cam-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .empty { padding: 40px; text-align: center; color: var(--text3); font-size: 13px; }
+  .cam-table { padding: 20px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-title">📷 <span>撮影</span>進捗管理</div>
+  <div class="header-badges">
+    <div class="badge danger"><span>稟議未</span><b id="badge-ringi">0</b></div>
+    <div class="badge warn"><span>振込未</span><b id="badge-furikomi">0</b></div>
+    <div class="badge"><span>納品待ち</span><b id="badge-delivery">0</b></div>
+    <div class="badge ok"><span>総件数</span><b id="badge-total">0</b></div>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('list')">案件一覧</div>
+  <div class="tab" onclick="switchTab('monthly')">月別アーカイブ</div>
+  <div class="tab" onclick="switchTab('payment')">支払いサイクル</div>
+  <div class="tab" onclick="switchTab('summary')">サマリー</div>
+  <div class="tab" onclick="switchTab('camera')">カメラマン別</div>
+</div>
+
+<!-- LIST TAB -->
+<div id="tab-list">
+  <div class="filters">
+    <select class="filter-select" id="f-facility" onchange="renderList()">
+      <option value="">施設 すべて</option>
+      <option>8F</option><option>8C</option><option>3SH</option><option>3SA</option><option>KH</option><option>8L</option>
+    </select>
+    <select class="filter-select" id="f-cam" onchange="renderList()">
+      <option value="">カメラマン すべて</option>
+    </select>
+    <select class="filter-select" id="f-type" onchange="renderList()">
+      <option value="">種別 すべて</option>
+      <option>SNS</option><option>マルシェ</option><option>夜スパ</option><option>5周年</option>
+    </select>
+    <select class="filter-select" id="f-fy" onchange="renderList()">
+      <option value="">年度 すべて</option>
+    </select>
+    <button class="filter-btn" id="fb-pending" onclick="togglePending()">未処理のみ</button>
+    <input class="filter-input" id="f-search" placeholder="🔍 検索..." oninput="renderList()" style="width:130px">
+    <button class="filter-btn" onclick="resetListFilters()">✕ リセット</button>
+    <button class="csv-btn" onclick="exportCSV()">↓ CSV出力</button>
+    <button class="add-btn" onclick="openModal()">＋ 新規追加</button>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>日付</th><th>施設</th><th>種別</th><th>カメラマン</th>
+          <th>金額(税抜)</th><th>稟議</th><th>振込</th><th>請求書</th><th>経理</th><th>支払確認</th>
+          <th>モデル</th><th>モデル金額(税込)</th><th>モデル稟議</th><th>モデル請求書</th><th>モデル支払</th>
+          <th>納品</th><th>備考</th><th></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div id="empty-msg" class="empty" style="display:none">該当する案件がありません</div>
+  </div>
+</div>
+
+<!-- MONTHLY TAB -->
+<div id="tab-monthly" style="display:none">
+  <div class="filters">
+    <select class="filter-select" id="mf-facility" onchange="renderMonthly()">
+      <option value="">施設 すべて</option>
+      <option>8F</option><option>8C</option><option>3SH</option><option>3SA</option><option>KH</option><option>8L</option>
+    </select>
+    <select class="filter-select" id="mf-cam" onchange="renderMonthly()">
+      <option value="">カメラマン すべて</option>
+    </select>
+    <select class="filter-select" id="mf-type" onchange="renderMonthly()">
+      <option value="">種別 すべて</option>
+    </select>
+    <button class="filter-btn" onclick="resetMonthlyFilters()">✕ リセット</button>
+  </div>
+  <div class="monthly-wrap" id="monthly-wrap"></div>
+</div>
+
+<!-- PAYMENT TAB -->
+<div id="tab-payment" style="display:none">
+  <div class="filters">
+    <select class="filter-select" id="pf-cam" onchange="renderPayment()">
+      <option value="">カメラマン すべて</option>
+    </select>
+    <button class="filter-btn" id="pfb-unpaid" onclick="togglePayPending()">未払いのみ</button>
+    <button class="filter-btn" onclick="resetPaymentFilters()">✕ リセット</button>
+  </div>
+  <div class="payment-wrap" id="payment-wrap"></div>
+</div>
+
+<!-- SUMMARY TAB -->
+<div id="tab-summary" style="display:none">
+  <div class="filters">
+    <select class="filter-select" id="sf-fy" onchange="renderSummary()">
+      <option value="">年度 すべて</option>
+    </select>
+    <select class="filter-select" id="sf-facility" onchange="renderSummary()">
+      <option value="">施設 すべて</option>
+      <option>8F</option><option>8C</option><option>3SH</option><option>3SA</option><option>KH</option><option>8L</option>
+    </select>
+    <button class="filter-btn" onclick="resetSummaryFilters()">✕ リセット</button>
+  </div>
+  <div class="summary-grid" id="summary-grid"></div>
+</div>
+
+<!-- CAMERA TAB -->
+<div id="tab-camera" style="display:none">
+  <div class="filters">
+    <select class="filter-select" id="cf-fy" onchange="renderCamera()">
+      <option value="">年度 すべて</option>
+    </select>
+    <select class="filter-select" id="cf-facility" onchange="renderCamera()">
+      <option value="">施設 すべて</option>
+      <option>8F</option><option>8C</option><option>3SH</option><option>3SA</option><option>KH</option><option>8L</option>
+    </select>
+    <button class="filter-btn" onclick="resetCameraFilters()">✕ リセット</button>
+  </div>
+  <div class="cam-table">
+    <table>
+      <thead>
+        <tr><th>カメラマン</th><th>件数</th><th>費用合計(税抜)</th><th>モデル費用(税込)</th><th>稟議未</th><th>振込未</th><th>納品待ち</th></tr>
+      </thead>
+      <tbody id="cam-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay" onclick="closeModalBg(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title" id="modal-title">新規案件追加</div>
+    <div class="form-grid">
+      <div class="form-group"><label>日付</label><input type="date" id="m-date"></div>
+      <div class="form-group"><label>施設</label>
+        <select id="m-facility"><option>8F</option><option>8C</option><option>3SH</option><option>3SA</option><option>KH</option><option>8L</option></select>
+      </div>
+      <div class="form-group"><label>種別</label>
+        <select id="m-type" onchange="handleTypeSelect(this)">
+          <option value="">選択してください</option>
+        </select>
+        <input id="m-type-custom" placeholder="種別を入力" style="margin-top:4px;display:none">
+      </div>
+      <div class="form-group"><label>カメラマン</label>
+        <select id="m-cam" onchange="handleCamSelect(this)">
+          <option value="">選択してください</option>
+        </select>
+        <input id="m-cam-custom" placeholder="名前を入力" style="margin-top:4px;display:none">
+      </div>
+      <div class="form-group"><label>カメラマン費用（税抜）</label><input type="number" id="m-camfee" value="0"></div>
+      <div class="form-group"><label>モデル名</label>
+        <select id="m-model" onchange="handleModelSelect(this)">
+          <option value="">選択してください</option>
+        </select>
+        <input id="m-model-custom" placeholder="名前を入力" style="margin-top:4px;display:none">
+      </div>
+      <div class="form-group"><label>モデル費用（税込）</label><input type="number" id="m-modelfee" value="0"></div>
+      <div class="form-group full"><label>納品状況</label><input id="m-delivery" placeholder="例：写真：済/動画④：未"></div>
+      <div class="form-group full"><label>備考</label><textarea id="m-note" rows="2"></textarea></div>
+    </div>
+    <div class="form-section">
+      <div class="form-section-title">カメラマン ステータス</div>
+      <div id="cam-status-row"></div>
+    </div>
+    <div class="form-section">
+      <div class="form-section-title">モデル ステータス</div>
+      <div id="model-status-row"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal()">キャンセル</button>
+      <button class="btn-primary" onclick="saveItem()">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const RAW = [
+  {date:'2025-01-27',fac:'3SH',type:'SNS',cam:'山際',camFee:80000,cam_s:['done','done','none','none','none'],model:'社内',modelFee:0,mod_s:['done','done','none','none'],delivery:'',note:''},
+  {date:'2025-01-29',fac:'KH',type:'SNS',cam:'安間',camFee:100000,cam_s:['none','pending','none','none','none'],model:'社内',modelFee:0,mod_s:['none','none','none','none'],delivery:'',note:''},
+  {date:'2025-02-25',fac:'8C',type:'SNS',cam:'ソン',camFee:0,cam_s:['none','none','none','none','none'],model:'社内',modelFee:0,mod_s:['none','none','none','none'],delivery:'',note:'大手さん友達 招待'},
+  {date:'2025-03-13',fac:'3SA',type:'SNS',cam:'山際',camFee:80000,cam_s:['done','done','none','none','none'],model:'あやの',modelFee:10000,mod_s:['done','done','none','none'],delivery:'',note:''},
+  {date:'2025-03-17',fac:'8F',type:'SNS',cam:'ソン・八神',camFee:45000,cam_s:['done','pending','none','none','none'],model:'ゆうき',modelFee:30000,mod_s:['done','done','done','done'],delivery:'',note:''},
+  {date:'2025-03-27',fac:'3SA',type:'SNS',cam:'DD',camFee:0,cam_s:['none','none','none','none','none'],model:'社内',modelFee:0,mod_s:['none','none','none','none'],delivery:'',note:''},
+  {date:'2025-04-11',fac:'KH',type:'SNS',cam:'安間',camFee:100000,cam_s:['none','pending','none','none','none'],model:'社内',modelFee:0,mod_s:['none','none','none','none'],delivery:'',note:''},
+  {date:'2025-04-20',fac:'8C',type:'SNS',cam:'ソン・八神',camFee:45000,cam_s:['done','pending','none','none','none'],model:'モニカ・ナオミ・社内',modelFee:11270,mod_s:['none','none','none','none'],delivery:'',note:'交通費建替済・8hotel招待 モニカ・ナオミ未定'},
+  {date:'2025-05-15',fac:'8C',type:'SNS',cam:'山際',camFee:80000,cam_s:['done','none','none','none','none'],model:'はるみ・かな',modelFee:0,mod_s:['none','none','none','none'],delivery:'',note:''},
+  {date:'2025-06-24',fac:'8F',type:'SNS',cam:'ソン・八神',camFee:30000,cam_s:['done','waiting','none','none','none'],model:'アンジ・あやの',modelFee:23398,mod_s:['done','done','done','done'],delivery:'',note:'[8hotel招待] アンジ:9/6 8C予約'},
+  {date:'2025-06-29',fac:'8C',type:'マルシェ',cam:'ソン・八神',camFee:30000,cam_s:['done','waiting','none','none','none'],model:'なし',modelFee:0,mod_s:['none','none','none','none'],delivery:'',note:''},
+  {date:'2025-07-03',fac:'KH',type:'SNS',cam:'安間',camFee:100000,cam_s:['none','pending','none','none','none'],model:'社内',modelFee:0,mod_s:['none','none','none','none'],delivery:'',note:''},
+  {date:'2025-07-11',fac:'8C',type:'SNS',cam:'ソン・八神',camFee:30000,cam_s:['done','done','none','none','none'],model:'社内',modelFee:0,mod_s:['none','none','done','none'],delivery:'',note:''},
+  {date:'2025-07-20',fac:'8C',type:'5周年',cam:'八神',camFee:60000,cam_s:['done','waiting','none','none','none'],model:'なし',modelFee:0,mod_s:['done','none','done','none'],delivery:'',note:''},
+  {date:'2025-07-21',fac:'8F',type:'夜スパ',cam:'八神',camFee:20000,cam_s:['none','pending','none','none','none'],model:'ゆうき',modelFee:0,mod_s:['none','none','done','none'],delivery:'レタッチ待ち',note:'[8F招待] 宿泊済'},
+  {date:'2025-08-27',fac:'3SH',type:'SNS',cam:'山際',camFee:80000,cam_s:['done','done','done','none','none'],model:'社内(橋上)',modelFee:0,mod_s:['done','done','done','none'],delivery:'',note:''},
+  {date:'2025-09-11',fac:'8C',type:'SNS',cam:'DD',camFee:0,cam_s:['none','none','none','none','none'],model:'社内(ヘナン・ひかり)',modelFee:0,mod_s:['none','none','none','none'],delivery:'',note:''},
+  {date:'2025-09-30',fac:'8C',type:'SNS',cam:'山際',camFee:80000,cam_s:['done','done','done','done','done'],model:'カロ(ヘナン・大手さん・かなさん・はるみさん)',modelFee:50000,mod_s:['done','none','done','none'],delivery:'',note:'カナさん[8F招待]宿泊済'},
+  {date:'2025-10-02',fac:'KH',type:'SNS',cam:'安間',camFee:0,cam_s:['done','none','none','none','none'],model:'たかこ(山田さん)',modelFee:30000,mod_s:['none','none','pending','pending'],delivery:'',note:''},
+  {date:'2025-10-26',fac:'8F',type:'SNS',cam:'八神',camFee:90000,cam_s:['done','none','done','done','done'],model:'大手さん・カナさん・あんな',modelFee:0,mod_s:['none','none','none','none'],delivery:'',note:'カナさん招待日未定'},
+  {date:'2025-11-06',fac:'KH',type:'SNS',cam:'ノリシナ',camFee:35000,cam_s:['done','none','done','done','none'],model:'なし',modelFee:0,mod_s:['none','none','none','none'],delivery:'',note:''},
+  {date:'2025-12-14',fac:'8C',type:'マルシェ',cam:'八神',camFee:30000,cam_s:['none','none','done','done','none'],model:'なし',modelFee:0,mod_s:['none','none','none','none'],delivery:'',note:''},
+  {date:'2025-12-16',fac:'8C',type:'SNS',cam:'山際',camFee:80000,cam_s:['done','none','done','done','done'],model:'はるみ',modelFee:10000,mod_s:['done','none','done','done'],delivery:'',note:''},
+  {date:'2026-01-16',fac:'KH',type:'SNS',cam:'安間',camFee:80000,cam_s:['pending','none','done','done','none'],model:'らいきくん',modelFee:10000,mod_s:['done','done','done','none'],delivery:'',note:'2月末支払い予定'},
+  {date:'2026-01-20',fac:'3SH',type:'SNS',cam:'山際',camFee:80000,cam_s:['done','none','done','done','none'],model:'社内(中田さん)',modelFee:0,mod_s:['none','none','none','none'],delivery:'',note:''},
+  {date:'2026-02-08',fac:'8F',type:'SNS',cam:'八神',camFee:60000,cam_s:['done','none','done','done','none'],model:'あやの・ムーン',modelFee:30000,mod_s:['done','done','done','none'],delivery:'写真：未/動画④：1/4',note:''},
+  {date:'2026-02-09',fac:'8C',type:'SNS',cam:'阿嘉',camFee:10000,cam_s:['done','none','done','done','none'],model:'なし',modelFee:0,mod_s:['none','none','none','none'],delivery:'写真：済/動画①：未',note:''},
+  {date:'2026-03-05',fac:'8C',type:'SNS',cam:'はるき',camFee:30000,cam_s:['done','none','done','done','none'],model:'HARUMI',modelFee:10000,mod_s:['done','done','done','none'],delivery:'写真：未/動画⑧：未',note:''},
+  {date:'2026-03-23',fac:'8L',type:'SNS',cam:'ノリシナ',camFee:20000,cam_s:['done','none','done','none','none'],model:'なし',modelFee:0,mod_s:['none','none','none','none'],delivery:'写真：未',note:''},
+  {date:'2026-03-27',fac:'KH',type:'SNS',cam:'安間',camFee:110000,cam_s:['pending','none','done','done','none'],model:'',modelFee:0,mod_s:['none','none','none','none'],delivery:'',note:''},
+  {date:'2026-05-21',fac:'3SH',type:'SNS',cam:'はるき',camFee:30000,cam_s:['pending','none','none','none','none'],model:'なし',modelFee:0,mod_s:['none','none','none','none'],delivery:'',note:''},
+  {date:'2026-05-22',fac:'3SA',type:'SNS',cam:'はるき',camFee:30000,cam_s:['done','none','none','none','none'],model:'',modelFee:0,mod_s:['none','none','none','none'],delivery:'',note:''},
+];
+
+const DEFAULT_CYCLES = {
+  '八神': [
+    { label: '第1回 ¥90,000', amount: 90000, paid: true,  items: ['2025-03-17 8F SNS', '2025-04-20 8C SNS'] },
+    { label: '第2回 ¥90,000', amount: 90000, paid: false, items: ['2025-06-24 8F SNS', '2025-06-29 8C マルシェ', '2025-07-11 8C SNS'] },
+    { label: 'イベント ¥80,000', amount: 80000, paid: false, items: ['2025-07-20 8C 5周年', '2025-07-21 8F 夜スパ'] },
+    { label: '第3回 ¥90,000', amount: 90000, paid: false, items: [] },
+  ]
+};
+
+let data = [], payCycles = {};
+
+function loadData() {
+  const saved = localStorage.getItem('photo_progress_v4');
+  if (saved) {
+    try { const p = JSON.parse(saved); data = p.data; payCycles = p.payCycles || JSON.parse(JSON.stringify(DEFAULT_CYCLES)); return; } catch(e) {}
+  }
+  data = RAW.map((r, i) => ({ ...r, id: i }));
+  payCycles = JSON.parse(JSON.stringify(DEFAULT_CYCLES));
+}
+function saveData() {
+  localStorage.setItem('photo_progress_v4', JSON.stringify({ data, payCycles }));
+}
+
+// HELPERS
+function fmtDate(d) { return d.replace('2025-','25/').replace('2026-','26/').replace(/(\d{2})\/0?(\d+)/g,'$1/$2'); }
+function stF(st, id, field, idx) {
+  if (id !== undefined) {
+    const oc = `onclick="toggleSt(${id},'${field}',${idx})"`;
+    const cls = st==='done' ? 'st-done' : st==='pending' ? 'st-pending' : st==='waiting' ? 'st-waiting' : st==='skip' ? 'st-skip' : 'st-none';
+    const lbl = st==='done' ? '✓' : st==='pending' ? '!' : st==='waiting' ? '⋯' : st==='skip' ? '不要' : '—';
+    return `<span class="st ${cls}" style="cursor:pointer" title="クリックで切替" ${oc}>${lbl}</span>`;
+  }
+  if (st==='done')    return '<span class="st st-done">✓</span>';
+  if (st==='pending') return '<span class="st st-pending">!</span>';
+  if (st==='waiting') return '<span class="st st-waiting">⋯</span>';
+  return '<span class="st st-none">—</span>';
+}
+function toggleSt(id, field, idx) {
+  const d = data.find(x=>x.id===id);
+  if (!d) return;
+  d[field][idx] = d[field][idx]==='done' ? 'none' : 'done';
+  saveData(); renderList();
+}
+function facChip(fac) { return `<span class="fac fac-${fac}">${fac}</span>`; }
+
+// ============================================================
+// LIST
+// ============================================================
+let pendingOnly = false, editingId = null;
+
+function getFiltered() {
+  const fac = document.getElementById('f-facility').value;
+  const cam = document.getElementById('f-cam').value;
+  const type = document.getElementById('f-type').value;
+  const fy = document.getElementById('f-fy') ? parseInt(document.getElementById('f-fy').value)||0 : 0;
+  const search = document.getElementById('f-search').value.toLowerCase();
+  return data.filter(d => {
+    if (fac && d.fac !== fac) return false;
+    if (cam && !d.cam.includes(cam)) return false;
+    if (type && d.type !== type) return false;
+    if (fy && getFiscalYear(d.date.slice(0,7)) !== fy) return false;
+    if (search && !JSON.stringify(d).toLowerCase().includes(search)) return false;
+    if (pendingOnly) {
+      const hp = d.cam_s.some(s=>s==='pending'||s==='waiting') || d.mod_s.some(s=>s==='pending'||s==='waiting') || (d.delivery&&d.delivery.includes('未'));
+      if (!hp) return false;
+    }
+    return true;
+  }).sort((a,b)=>a.date<b.date?-1:1);
+}
+
+function renderList() {
+  const filtered = getFiltered();
+  const tbody = document.getElementById('tbody');
+  const empty = document.getElementById('empty-msg');
+  if (!filtered.length) { tbody.innerHTML=''; empty.style.display=''; return; }
+  empty.style.display = 'none';
+  tbody.innerHTML = filtered.map(d => `<tr>
+    <td class="date-col">${fmtDate(d.date)}</td>
+    <td>${facChip(d.fac)}</td>
+    <td class="type-col">${d.type}</td>
+    <td style="font-size:12px">${d.cam}</td>
+    <td class="amount amount-cam">${d.camFee>0?'¥'+d.camFee.toLocaleString():'<span class="amount-zero">—</span>'}</td>
+    <td>${stF(d.cam_s[0],d.id,'cam_s',0)}</td><td>${stF(d.cam_s[1],d.id,'cam_s',1)}</td><td>${stF(d.cam_s[2],d.id,'cam_s',2)}</td><td>${stF(d.cam_s[3],d.id,'cam_s',3)}</td><td>${stF(d.cam_s[4],d.id,'cam_s',4)}</td>
+    <td class="model-col">${d.model||'—'}</td>
+    <td class="amount amount-model">${d.modelFee>0?'¥'+d.modelFee.toLocaleString():'<span class="amount-zero">—</span>'}</td>
+    <td>${stF(d.mod_s[0],d.id,'mod_s',0)}</td><td>${stF(d.mod_s[2],d.id,'mod_s',2)}</td><td>${stF(d.mod_s[3],d.id,'mod_s',3)}</td>
+    <td class="delivery-col" title="${d.delivery||''}">${d.delivery||'—'}</td>
+    <td class="note-col" contenteditable="true" onblur="saveNote(${d.id},this)" title="${d.note||''}">${d.note||''}</td>
+    <td style="white-space:nowrap">
+      <button class="edit-btn" onclick="openModal(${d.id})">編集</button>
+      <button class="del-btn" onclick="deleteItem(${d.id})">削除</button>
+    </td>
+  </tr>`).join('');
+  updateBadges();
+}
+
+function updateBadges() {
+  let ringi=0,furi=0,del=0;
+  data.forEach(d=>{ if(d.cam_s[0]==='pending') ringi++; if(d.cam_s[1]==='pending'||d.cam_s[1]==='waiting') furi++; if(d.delivery&&d.delivery.includes('未')) del++; });
+  document.getElementById('badge-ringi').textContent=ringi;
+  document.getElementById('badge-furikomi').textContent=furi;
+  document.getElementById('badge-delivery').textContent=del;
+  document.getElementById('badge-total').textContent=data.length;
+}
+
+function togglePending() { pendingOnly=!pendingOnly; document.getElementById('fb-pending').classList.toggle('active',pendingOnly); renderList(); }
+
+// ============================================================
+// CSV EXPORT
+// ============================================================
+function exportCSV() {
+  const filtered = getFiltered();
+  const sl = s => s==='done'?'済':s==='pending'?'未':s==='waiting'?'待ち':'—';
+  const headers = ['日付','施設','種別','カメラマン','カメラマン費用(税抜)','稟議','振込依頼','請求書受領','経理依頼','支払確認','モデル','モデル費用(税込)','モデル稟議','モデル現場共有','モデル請求書','モデル支払','納品状況','備考'];
+  const rows = filtered.map(d => [
+    d.date,d.fac,d.type,d.cam,d.camFee,
+    sl(d.cam_s[0]),sl(d.cam_s[1]),sl(d.cam_s[2]),sl(d.cam_s[3]),sl(d.cam_s[4]),
+    d.model,d.modelFee,
+    sl(d.mod_s[0]),sl(d.mod_s[1]),sl(d.mod_s[2]),sl(d.mod_s[3]),
+    d.delivery,d.note
+  ].map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(','));
+  const csv = '\uFEFF' + [headers.join(','),...rows].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download = `撮影進捗_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+// ============================================================
+// MONTHLY ARCHIVE
+// ============================================================
+function getFiscalYear(ym) {
+  const [y, m] = ym.split('-').map(Number);
+  return m >= 4 ? y : y - 1;
+}
+function fiscalKey(ym) {
+  const [y,m] = ym.split('-').map(Number);
+  return m >= 4 ? y * 100 + m : (y-1) * 100 + (m + 100);
+}
+
+let activeFY = null;
+
+function renderMonthly() {
+  const allFYs = [...new Set(data.map(d => getFiscalYear(d.date.slice(0,7))))].sort((a,b)=>b-a);
+  if (activeFY === null || !allFYs.includes(activeFY)) activeFY = allFYs[0];
+
+  const fyTabsHtml = '<div class="fy-tabs">' +
+    allFYs.map(fy => '<button class="fy-tab' + (fy===activeFY?' active':'') + '" onclick="switchFY('+fy+')">' + fy + '年度</button>').join('') +
+    '</div>';
+
+  const sorted = [...data].sort((a,b)=>a.date<b.date?-1:1);
+  const months = {};
+  const mfFac = document.getElementById('mf-facility') ? document.getElementById('mf-facility').value : '';
+  const mfCam = document.getElementById('mf-cam') ? document.getElementById('mf-cam').value : '';
+  const mfType = document.getElementById('mf-type') ? document.getElementById('mf-type').value : '';
+  sorted.forEach(d => {
+    const ym = d.date.slice(0,7);
+    if (getFiscalYear(ym) !== activeFY) return;
+    if (mfFac && d.fac !== mfFac) return;
+    if (mfCam && !d.cam.includes(mfCam)) return;
+    if (mfType && d.type !== mfType) return;
+    if (!months[ym]) months[ym] = [];
+    months[ym].push(d);
+  });
+
+  const monthsHtml = Object.entries(months).sort((a,b)=>fiscalKey(b[0])-fiscalKey(a[0])).map(function(entry) {
+    const ym = entry[0], items = entry[1];
+    const totalCam = items.reduce((s,d)=>s+d.camFee,0);
+    const totalModel = items.reduce((s,d)=>s+d.modelFee,0);
+    const pending = items.filter(d=>d.cam_s.some(s=>s==='pending')||d.mod_s.some(s=>s==='pending')).length;
+    const parts = ym.split('-');
+    const label = parts[0] + '年' + parseInt(parts[1]) + '月';
+    const rows = items.map(function(d) { return '<tr>'
+      + '<td class="date-col" style="padding-left:14px">' + fmtDate(d.date) + '</td>'
+      + '<td>' + facChip(d.fac) + '</td>'
+      + '<td class="type-col">' + d.type + '</td>'
+      + '<td style="font-size:12px">' + d.cam + '</td>'
+      + '<td class="amount amount-cam">' + (d.camFee>0?'¥'+d.camFee.toLocaleString():'—') + '</td>'
+      + '<td>' + stF(d.cam_s[0]) + '</td>'
+      + '<td>' + stF(d.cam_s[1]) + '</td>'
+      + '<td>' + stF(d.cam_s[4]) + '</td>'
+      + '<td class="model-col">' + (d.model||'—') + '</td>'
+      + '<td class="amount amount-model">' + (d.modelFee>0?'¥'+d.modelFee.toLocaleString():'—') + '</td>'
+      + '<td>' + stF(d.mod_s[3]) + '</td>'
+      + '<td class="delivery-col" title="' + (d.delivery||'') + '">' + (d.delivery||'—') + '</td>'
+      + '</tr>';
+    }).join('');
+    return '<div class="month-block">'
+      + '<div class="month-header" onclick="toggleMonth(\'' + ym + '\')">'
+      + '<span class="month-label">' + label + '</span>'
+      + '<span class="month-stats">'
+      + '<span>' + items.length + '件</span>'
+      + '<span style="color:var(--accent)">CAM ¥' + totalCam.toLocaleString() + '</span>'
+      + '<span style="color:var(--accent3)">MODEL ¥' + totalModel.toLocaleString() + '</span>'
+      + (pending>0 ? '<span style="color:var(--warn)">⚠ 未処理 '+pending+'件</span>' : '<span style="color:var(--ok)">✓ 完了</span>')
+      + '</span>'
+      + '<span class="month-toggle" id="mt-' + ym + '">▼</span>'
+      + '</div>'
+      + '<div class="month-body" id="mb-' + ym + '">'
+      + '<table><thead><tr>'
+      + '<th style="padding-left:14px">日付</th><th>施設</th><th>種別</th><th>カメラマン</th>'
+      + '<th>費用(税抜)</th><th>稟議</th><th>振込</th><th>支払確認</th>'
+      + '<th>モデル</th><th>モデル費用(税込)</th><th>モデル支払</th><th>納品</th>'
+      + '</tr></thead><tbody>' + rows + '</tbody></table>'
+      + '</div></div>';
+  }).join('');
+
+  document.getElementById('monthly-wrap').innerHTML = fyTabsHtml + monthsHtml;
+}
+
+function switchFY(fy) {
+  activeFY = fy;
+  renderMonthly();
+}
+
+function toggleMonth(ym) {
+  const body = document.getElementById('mb-'+ym);
+  const tog = document.getElementById('mt-'+ym);
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  tog.classList.toggle('open', !isOpen);
+  tog.textContent = isOpen ? '▼' : '▲';
+}
+
+// ============================================================
+// PAYMENT CYCLE
+// ============================================================
+let payPendingOnly = false;
+function togglePayPending() {
+  payPendingOnly = !payPendingOnly;
+  document.getElementById('pfb-unpaid').classList.toggle('active', payPendingOnly);
+  renderPayment();
+}
+
+function renderPayment() {
+  const wrap = document.getElementById('payment-wrap');
+  const pfCam = document.getElementById('pf-cam') ? document.getElementById('pf-cam').value : '';
+  let allCams = Object.keys(payCycles);
+  if (pfCam) allCams = allCams.filter(c => c === pfCam);
+  if (payPendingOnly) allCams = allCams.filter(c => payCycles[c].some(cy=>!cy.paid));
+  if (!allCams.length) { wrap.innerHTML = '<div class="empty">該当するカメラマンがありません</div>'; return; }
+
+  wrap.innerHTML = allCams.map(cam => {
+    const cycles = payCycles[cam];
+    const totalPaid = cycles.filter(c=>c.paid).reduce((s,c)=>s+c.amount,0);
+    const totalUnpaid = cycles.filter(c=>!c.paid).reduce((s,c)=>s+c.amount,0);
+    const cycleHTML = cycles.map((cycle, ci) => {
+      const itemHTML = cycle.items.map((item, ii) => `
+        <div class="cycle-item">
+          <span class="ci-date">${item.slice(5,10)}</span>
+          <span style="flex:1">${item.slice(11)||item}</span>
+          <button class="ci-edit-item" onclick="editItemInCycle('${cam}',${ci},${ii})">編集</button>
+          <button class="ci-del-item" onclick="removeItemFromCycle('${cam}',${ci},${ii})">✕</button>
+        </div>`).join('') +
+        `<div class="cycle-item" style="cursor:pointer;color:var(--text3);font-size:11px" onclick="addItemToCycle('${cam}',${ci})">＋ 案件を追加</div>`;
+      return `<div class="pay-cycle">
+        <div class="pay-cycle-header">
+          <span class="cycle-label">${cycle.label}</span>
+          <span class="cycle-amount">¥${cycle.amount.toLocaleString()}</span>
+          <span class="cycle-status">
+            ${cycle.paid
+              ? `<button class="cycle-unpaid" style="background:#f1f5f9;color:var(--text3);border-color:var(--border)" onclick="markCycleUnpaid('${cam}',${ci})">✓ 支払済 (取消)</button>`
+              : `<button class="cycle-unpaid" onclick="markCyclePaid('${cam}',${ci})">未払い → 済にする</button>`}
+          </span>
+          <button class="edit-btn" onclick="editCycle('${cam}',${ci})">編集</button>
+          <button class="del-btn" onclick="deleteCycle('${cam}',${ci})">削除</button>
+        </div>
+        <div class="cycle-items">${itemHTML}</div>
+      </div>`;
+    }).join('');
+
+    return `<div class="pay-cam-block">
+      <div class="pay-cam-header">
+        <span class="pay-cam-name">📷 ${cam}</span>
+        <span style="font-size:11px;color:var(--text2)">
+          支払済 <span style="color:var(--ok);font-weight:600">¥${totalPaid.toLocaleString()}</span>
+          &nbsp;未払い <span style="color:var(--warn);font-weight:600">¥${totalUnpaid.toLocaleString()}</span>
+        </span>
+        <span class="pay-cam-total">合計 ¥${(totalPaid+totalUnpaid).toLocaleString()}</span>
+        <button class="del-btn" onclick="deleteCam('${cam}')" style="margin-left:8px">カメラマン削除</button>
+      </div>
+      <div class="pay-cycles">${cycleHTML}</div>
+      <button class="add-cycle-btn" onclick="addCycle('${cam}')">＋ 支払いサイクルを追加</button>
+    </div>`;
+  }).join('') +
+  `<button class="add-cam-btn" onclick="addCam()">＋ カメラマンを追加</button>`;
+}
+
+function markCyclePaid(cam, ci) { payCycles[cam][ci].paid=true; saveData(); renderPayment(); }
+function markCycleUnpaid(cam, ci) { if(!confirm('支払済を未払いに戻しますか？')) return; payCycles[cam][ci].paid=false; saveData(); renderPayment(); }
+function deleteCycle(cam, ci) { if(!confirm('このサイクルを削除しますか？')) return; payCycles[cam].splice(ci,1); saveData(); renderPayment(); }
+function editCycle(cam, ci) {
+  const cycle = payCycles[cam][ci];
+  const label = prompt('サイクル名を変更', cycle.label); if(label===null) return;
+  const amountStr = prompt('金額（税抜）を変更', String(cycle.amount)); if(amountStr===null) return;
+  const amount = parseInt(amountStr);
+  if(label.trim()) cycle.label = label.trim();
+  if(!isNaN(amount)) cycle.amount = amount;
+  saveData(); renderPayment();
+}
+function addCycle(cam) {
+  const label = prompt('サイクル名（例: 第4回 ¥90,000）'); if(!label) return;
+  const amount = parseInt(prompt('金額（税抜）', '90000'))||0;
+  payCycles[cam].push({label,amount,paid:false,items:[]}); saveData(); renderPayment();
+}
+function addItemToCycle(cam, ci) {
+  const item = prompt('案件を入力（例: 2026-06-01 8F SNS）'); if(!item) return;
+  payCycles[cam][ci].items.push(item); saveData(); renderPayment();
+}
+function editItemInCycle(cam, ci, ii) {
+  const current = payCycles[cam][ci].items[ii];
+  const val = prompt('案件テキストを編集', current); if(val===null) return;
+  if(val.trim()) payCycles[cam][ci].items[ii] = val.trim();
+  saveData(); renderPayment();
+}
+function removeItemFromCycle(cam, ci, ii) { payCycles[cam][ci].items.splice(ii,1); saveData(); renderPayment(); }
+function addCam() {
+  const name = prompt('カメラマン名を入力'); if(!name||!name.trim()) return;
+  if(!payCycles[name.trim()]) payCycles[name.trim()]=[];
+  saveData(); renderPayment();
+}
+function deleteCam(cam) {
+  if(!confirm(`「${cam}」のサイクルデータをすべて削除しますか？`)) return;
+  delete payCycles[cam]; saveData(); renderPayment();
+}
+
+// ============================================================
+// SUMMARY
+// ============================================================
+function renderSummary() {
+  const sfFy = document.getElementById('sf-fy') ? parseInt(document.getElementById('sf-fy').value)||0 : 0;
+  const sfFac = document.getElementById('sf-facility') ? document.getElementById('sf-facility').value : '';
+  const sdata = data.filter(d => {
+    if (sfFy && getFiscalYear(d.date.slice(0,7)) !== sfFy) return false;
+    if (sfFac && d.fac !== sfFac) return false;
+    return true;
+  });
+  const totalCam = sdata.reduce((s,d)=>s+d.camFee,0);
+  const totalModel = sdata.reduce((s,d)=>s+d.modelFee,0);
+  const facMap = {};
+  sdata.forEach(d=>{ if(!facMap[d.fac]) facMap[d.fac]={count:0,cam:0,model:0}; facMap[d.fac].count++; facMap[d.fac].cam+=d.camFee; facMap[d.fac].model+=d.modelFee; });
+  const ringi=sdata.filter(d=>d.cam_s[0]==='pending').length;
+  const furi=sdata.filter(d=>d.cam_s[1]==='pending'||d.cam_s[1]==='waiting').length;
+  const delPend=sdata.filter(d=>d.delivery&&d.delivery.includes('未')).length;
+  const mPay=sdata.filter(d=>d.mod_s[3]==='pending').length;
+  let html = `
+    <div class="summary-card"><div class="summary-card-title">カメラマン費用合計（税抜）</div><div class="summary-card-value accent">¥${totalCam.toLocaleString()}</div></div>
+    <div class="summary-card"><div class="summary-card-title">モデル費用合計（税込）</div><div class="summary-card-value" style="color:var(--accent3)">¥${totalModel.toLocaleString()}</div></div>
+    <div class="summary-card"><div class="summary-card-title">稟議 未処理</div><div class="summary-card-value ${ringi>0?'danger':'ok'}">${ringi}件</div></div>
+    <div class="summary-card"><div class="summary-card-title">振込依頼 未処理</div><div class="summary-card-value ${furi>0?'warn':'ok'}">${furi}件</div></div>
+    <div class="summary-card"><div class="summary-card-title">納品待ち</div><div class="summary-card-value ${delPend>0?'warn':'ok'}">${delPend}件</div></div>
+    <div class="summary-card"><div class="summary-card-title">モデル支払い未</div><div class="summary-card-value ${mPay>0?'danger':'ok'}">${mPay}件</div></div>
+    <div class="summary-card"><div class="summary-card-title">総案件数</div><div class="summary-card-value">${sdata.length}件</div></div>`;
+  Object.entries(facMap).sort((a,b)=>b[1].cam-a[1].cam).forEach(([fac,v])=>{
+    html+=`<div class="summary-card"><div class="summary-card-title">${fac} (${v.count}件)</div><div style="margin:4px 0">${facChip(fac)}</div><div class="summary-card-value" style="font-size:16px;color:var(--text)">¥${v.cam.toLocaleString()}</div><div style="font-size:11px;color:var(--text3);margin-top:2px">モデル ¥${v.model.toLocaleString()}</div></div>`;
+  });
+  document.getElementById('summary-grid').innerHTML = html;
+}
+
+// ============================================================
+// CAMERA TAB
+// ============================================================
+function renderCamera() {
+  const cfFy = document.getElementById('cf-fy') ? parseInt(document.getElementById('cf-fy').value)||0 : 0;
+  const cfFac = document.getElementById('cf-facility') ? document.getElementById('cf-facility').value : '';
+  const cdata = data.filter(d => {
+    if (cfFy && getFiscalYear(d.date.slice(0,7)) !== cfFy) return false;
+    if (cfFac && d.fac !== cfFac) return false;
+    return true;
+  });
+  const camMap = {};
+  cdata.forEach(d=>{
+    d.cam.split('・').forEach(c=>{
+      c=c.trim(); if(!c) return;
+      if(!camMap[c]) camMap[c]={count:0,cam:0,model:0,ringi:0,furi:0,delivery:0};
+      camMap[c].count++; camMap[c].cam+=d.camFee; camMap[c].model+=d.modelFee;
+      if(d.cam_s[0]==='pending') camMap[c].ringi++;
+      if(d.cam_s[1]==='pending'||d.cam_s[1]==='waiting') camMap[c].furi++;
+      if(d.delivery&&d.delivery.includes('未')) camMap[c].delivery++;
+    });
+  });
+  document.getElementById('cam-tbody').innerHTML = Object.entries(camMap).sort((a,b)=>b[1].count-a[1].count).map(([cam,v])=>`<tr>
+    <td style="font-weight:500">${cam}</td>
+    <td class="amount">${v.count}</td>
+    <td class="amount amount-cam">¥${v.cam.toLocaleString()}</td>
+    <td class="amount amount-model">¥${v.model.toLocaleString()}</td>
+    <td>${v.ringi>0?`<span class="st st-pending">${v.ringi}件</span>`:'<span class="st st-done">✓</span>'}</td>
+    <td>${v.furi>0?`<span class="st st-pending">${v.furi}件</span>`:'<span class="st st-done">✓</span>'}</td>
+    <td>${v.delivery>0?`<span class="st st-waiting">${v.delivery}件</span>`:'<span class="st st-done">✓</span>'}</td>
+  </tr>`).join('');
+}
+
+// ============================================================
+// MODAL
+// ============================================================
+const CAM_LABELS=['稟議','振込依頼','請求書受領','経理依頼','支払確認'];
+const MOD_LABELS=['稟議','現場共有','請求書受領','支払'];
+let camStatuses=['none','none','none','none','none'], modStatuses=['none','none','none','none'];
+
+function buildStatusRow(id, labels, statuses) {
+  var html = '';
+  for (var i = 0; i < labels.length; i++) {
+    var lbl = labels[i];
+    var st = statuses[i];
+    var isRingi = (lbl === '稟議');
+    html += '<div class="status-item">';
+    html += '<label>' + lbl + '</label>';
+    html += '<div class="status-toggle">';
+    html += '<button class="stbtn ' + (st==='done'?'active-done':'') + '" onclick="setStatus(\'' + id + '\',' + i + ',\'done\')">済</button>';
+    html += '<button class="stbtn ' + (st==='pending'?'active-pending':'') + '" onclick="setStatus(\'' + id + '\',' + i + ',\'pending\')">未</button>';
+    if (isRingi) {
+      html += '<button class="stbtn ' + (st==='skip'?'active-skip':'') + '" onclick="setStatus(\'' + id + '\',' + i + ',\'skip\')">不要</button>';
+    }
+    html += '<button class="stbtn ' + (st==='none'?'active-none':'') + '" onclick="setStatus(\'' + id + '\',' + i + ',\'none\')">—</button>';
+    html += '</div></div>';
+  }
+  document.getElementById(id).innerHTML = html;
+}
+function setStatus(id,idx,val) {
+  if(id==='cam-status-row') camStatuses[idx]=val; else modStatuses[idx]=val;
+  buildStatusRow(id,id==='cam-status-row'?CAM_LABELS:MOD_LABELS,id==='cam-status-row'?camStatuses:modStatuses);
+}
+function getTypeList() {
+  const fixed = ['SNS','マルシェ','夜スパ','5周年'];
+  const fromData = [...new Set(data.map(d=>d.type))].filter(Boolean);
+  return [...new Set([...fixed, ...fromData])].sort();
+}
+function handleTypeSelect(sel) {
+  const custom = document.getElementById('m-type-custom');
+  custom.style.display = sel.value === '__new__' ? '' : 'none';
+  if (sel.value !== '__new__') custom.value = '';
+}
+function getCamList() {
+  return [...new Set(data.flatMap(d => d.cam.split('・').map(c=>c.trim())))].filter(Boolean).sort();
+}
+function getModelList() {
+  return [...new Set(data.flatMap(d => (d.model||'').split(/[・,、]/).map(c=>c.trim())))].filter(c=>c&&c!=='なし'&&c!=='社内').sort();
+}
+function populateSelect(selId, items, currentVal) {
+  const sel = document.getElementById(selId);
+  const customId = selId + '-custom';
+  const customEl = document.getElementById(customId);
+  sel.innerHTML = '<option value="">選択してください</option>'
+    + items.map(v=>'<option value="'+v+'"'+(v===currentVal?' selected':'')+'>'+v+'</option>').join('')
+    + '<option value="__new__">＋ 新規追加...</option>';
+  if (currentVal && !items.includes(currentVal)) {
+    sel.value = '__new__';
+    customEl.style.display = '';
+    customEl.value = currentVal;
+  } else {
+    customEl.style.display = 'none';
+  }
+}
+function handleCamSelect(sel) {
+  const custom = document.getElementById('m-cam-custom');
+  custom.style.display = sel.value === '__new__' ? '' : 'none';
+  if (sel.value !== '__new__') custom.value = '';
+}
+function handleModelSelect(sel) {
+  const custom = document.getElementById('m-model-custom');
+  custom.style.display = sel.value === '__new__' ? '' : 'none';
+  if (sel.value !== '__new__') custom.value = '';
+}
+function getSelectVal(selId) {
+  const sel = document.getElementById(selId);
+  if (sel.value === '__new__') return document.getElementById(selId+'-custom').value.trim();
+  return sel.value;
+}
+
+function openModal(id=null) {
+  editingId=id;
+  document.getElementById('modal-title').textContent=id!==null?'案件編集':'新規案件追加';
+  if(id!==null){
+    const d=data.find(x=>x.id===id);
+    document.getElementById('m-date').value=d.date;
+    document.getElementById('m-facility').value=d.fac;
+    document.getElementById('m-type').value=d.type;
+    populateSelect('m-cam', getCamList(), d.cam);
+    populateSelect('m-type', getTypeList(), d.type);
+    document.getElementById('m-camfee').value=d.camFee;
+    populateSelect('m-model', getModelList(), d.model||'');
+    document.getElementById('m-modelfee').value=d.modelFee;
+    document.getElementById('m-delivery').value=d.delivery;
+    document.getElementById('m-note').value=d.note;
+    camStatuses=[...d.cam_s]; modStatuses=[...d.mod_s];
+  } else {
+    document.getElementById('m-date').value=new Date().toISOString().split('T')[0];
+    document.getElementById('m-facility').value='8F';
+    document.getElementById('m-type').value='SNS';
+    populateSelect('m-cam', getCamList(), '');
+    populateSelect('m-type', getTypeList(), 'SNS');
+    populateSelect('m-model', getModelList(), '');
+    ['m-delivery','m-note'].forEach(i=>document.getElementById(i).value='');
+    document.getElementById('m-camfee').value=0; document.getElementById('m-modelfee').value=0;
+    camStatuses=['none','none','none','none','none']; modStatuses=['none','none','none','none'];
+  }
+  buildStatusRow('cam-status-row',CAM_LABELS,camStatuses);
+  buildStatusRow('model-status-row',MOD_LABELS,modStatuses);
+  document.getElementById('overlay').classList.add('open');
+}
+function closeModal() { document.getElementById('overlay').classList.remove('open'); }
+function closeModalBg(e) { if(e.target===document.getElementById('overlay')) closeModal(); }
+function saveItem() {
+  const item = {
+    id:editingId!==null?editingId:Date.now(),
+    date:document.getElementById('m-date').value,
+    fac:document.getElementById('m-facility').value,
+    type:getSelectVal('m-type'),
+    cam:getSelectVal('m-cam'),
+    camFee:parseInt(document.getElementById('m-camfee').value)||0,
+    model:getSelectVal('m-model'),
+    modelFee:parseInt(document.getElementById('m-modelfee').value)||0,
+    delivery:document.getElementById('m-delivery').value,
+    note:document.getElementById('m-note').value,
+    cam_s:[...camStatuses],mod_s:[...modStatuses],
+  };
+  if(editingId!==null){const idx=data.findIndex(x=>x.id===editingId);data[idx]=item;}
+  else data.push(item);
+  saveData(); closeModal(); renderAll();
+}
+function deleteItem(id) { if(!confirm('この案件を削除しますか？')) return; data=data.filter(x=>x.id!==id); saveData(); renderAll(); }
+
+// ============================================================
+// TABS
+// ============================================================
+const TABS=['list','monthly','payment','summary','camera'];
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',TABS[i]===tab));
+  TABS.forEach(t=>document.getElementById('tab-'+t).style.display=t===tab?'':'none');
+  if(tab==='monthly') renderMonthly();
+  if(tab==='payment') renderPayment();
+  if(tab==='summary') renderSummary();
+  if(tab==='camera') renderCamera();
+}
+function populateCamFilter() {
+  const cams = [...new Set(data.flatMap(d=>d.cam.split('・').map(c=>c.trim())))].filter(Boolean).sort();
+  const types = [...new Set(data.map(d=>d.type))].filter(Boolean).sort();
+  const fys = [...new Set(data.map(d=>getFiscalYear(d.date.slice(0,7))))].sort((a,b)=>b-a);
+  const fyOpts = fys.map(f=>'<option value="'+f+'">'+f+'年度</option>').join('');
+  const camOpts = '<option value="">カメラマン すべて</option>'+cams.map(c=>'<option>'+c+'</option>').join('');
+  const typeOpts = '<option value="">種別 すべて</option>'+types.map(t=>'<option>'+t+'</option>').join('');
+
+  // LIST filters
+  document.getElementById('f-cam').innerHTML = camOpts;
+  document.getElementById('f-fy').innerHTML = '<option value="">年度 すべて</option>' + fyOpts;
+  document.getElementById('f-type').innerHTML = typeOpts;
+
+  // MONTHLY filters
+  if(document.getElementById('mf-cam')) document.getElementById('mf-cam').innerHTML = camOpts;
+  if(document.getElementById('mf-type')) document.getElementById('mf-type').innerHTML = typeOpts;
+
+  // PAYMENT filter
+  const payCams = Object.keys(payCycles);
+  if(document.getElementById('pf-cam')) document.getElementById('pf-cam').innerHTML = '<option value="">カメラマン すべて</option>'+payCams.map(c=>'<option>'+c+'</option>').join('');
+
+  // SUMMARY filter
+  if(document.getElementById('sf-fy')) document.getElementById('sf-fy').innerHTML = '<option value="">年度 すべて</option>' + fyOpts;
+
+  // CAMERA filter
+  if(document.getElementById('cf-fy')) document.getElementById('cf-fy').innerHTML = '<option value="">年度 すべて</option>' + fyOpts;
+}
+function resetListFilters() {
+  ['f-facility','f-cam','f-type','f-fy'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('f-search').value='';
+  if(pendingOnly){ pendingOnly=false; document.getElementById('fb-pending').classList.remove('active'); }
+  renderList();
+}
+function resetMonthlyFilters() {
+  ['mf-facility','mf-cam','mf-type'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  renderMonthly();
+}
+function resetPaymentFilters() {
+  const el=document.getElementById('pf-cam'); if(el) el.value='';
+  if(payPendingOnly){ payPendingOnly=false; document.getElementById('pfb-unpaid').classList.remove('active'); }
+  renderPayment();
+}
+function resetSummaryFilters() {
+  ['sf-fy','sf-facility'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  renderSummary();
+}
+function resetCameraFilters() {
+  ['cf-fy','cf-facility'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  renderCamera();
+}
+function saveNote(id, el) {
+  const d = data.find(x=>x.id===id);
+  if(!d) return;
+  d.note = el.innerText.trim();
+  saveData();
+}
+
+function renderAll() { renderList(); populateCamFilter(); updateBadges(); }
+
+loadData(); renderAll();
+</script>
+</body>
+</html>
