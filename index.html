@@ -1337,108 +1337,233 @@ function updateInvoicePreview() {
   var isShohi  = (taxtype === 'shohi');
   var actionWord = isSeikyu ? 'ご請求' : 'お見積り';
   var taxLabel   = isShohi ? '消費税（10%）' : '源泉徴収税';
-  var taxSign    = isShohi ? '+' : '-';
   var taxDisplay = isShohi ? fmtYen(tax) : '¥-' + Math.round(tax).toLocaleString();
 
-  // Detail rows (min 6 rows, with No.)
-  var rows = invItems.map(function(it, idx) {
-    var amt = it.qty * it.price;
-    return '<tr>'
-      + (isSeikyu ? '<td style="padding:2mm 2mm;border:1px solid #d8d8d6;font-size:8pt;text-align:center;width:8mm">' + (idx+1) + '</td>' : '')
-      + '<td style="padding:2mm 3mm;border:1px solid #d8d8d6;font-size:8.5pt">' + it.desc + '</td>'
-      + '<td style="padding:2mm 2mm;border:1px solid #d8d8d6;font-size:8.5pt;text-align:right;width:14mm">' + it.qty + '</td>'
-      + '<td style="padding:2mm 3mm;border:1px solid #d8d8d6;font-size:8.5pt;text-align:right;width:26mm">' + fmtYen(it.price) + '</td>'
-      + '<td style="padding:2mm 3mm;border:1px solid #d8d8d6;font-size:8.5pt;text-align:right;width:26mm">' + fmtYen(amt) + '</td>'
+  var BLUE  = '#4472C4';
+  var BLUE2 = '#DCE6F1'; // light blue row bg
+  var BLUE3 = '#8DB3E2'; // mid blue
+
+  if (isSeikyu) {
+    // ============================================================
+    // 請求書 レイアウト
+    // ============================================================
+    var minRows = 10;
+    var rows = invItems.map(function(it, idx) {
+      var amt = it.qty * it.price;
+      var bg = (idx % 2 === 1) ? 'background:'+BLUE2+';' : '';
+      return '<tr style="'+bg+'">'
+        + '<td style="padding:4px 6px;border-right:1px solid #ccc;text-align:center;width:24px;font-size:11px">'+(idx+1)+'</td>'
+        + '<td style="padding:4px 8px;border-right:1px solid #ccc;font-size:11px">' + it.desc + '</td>'
+        + '<td style="padding:4px 6px;border-right:1px solid #ccc;text-align:right;width:44px;font-size:11px">' + (it.qty||'') + '</td>'
+        + '<td style="padding:4px 8px;border-right:1px solid #ccc;text-align:right;width:80px;font-size:11px">' + (it.price ? it.price.toLocaleString() : '') + '</td>'
+        + '<td style="padding:4px 8px;text-align:right;width:80px;font-size:11px">' + (amt ? amt.toLocaleString() : '') + '</td>'
+        + '</tr>';
+    });
+    while (rows.length < minRows) {
+      var bg = (rows.length % 2 === 1) ? 'background:'+BLUE2+';' : '';
+      rows.push('<tr style="'+bg+'"><td style="padding:4px 6px;border-right:1px solid #ccc;height:24px;font-size:11px;color:#999">'+(rows.length+1)+'</td><td style="padding:4px 8px;border-right:1px solid #ccc"></td><td style="padding:4px 6px;border-right:1px solid #ccc"></td><td style="padding:4px 8px;border-right:1px solid #ccc"></td><td style="padding:4px 8px"></td></tr>');
+    }
+
+    var bankHtml = '';
+    if (bankName || bankBranch || bankNo || bankHolder) {
+      bankHtml =
+        '<table style="border-collapse:collapse;font-size:11px;margin-top:12px;width:60%">'
+        + '<tr>'
+        +   '<td rowspan="5" style="padding:4px 10px;font-size:11px;font-weight:700;vertical-align:middle;border:1px solid #bbb;background:#f0f0f0;text-align:center;width:46px">振込先</td>'
+        +   '<td style="padding:4px 8px;border:1px solid #bbb;background:#f7f7f7;width:66px;font-size:11px">銀行名</td>'
+        +   '<td style="padding:4px 8px;border:1px solid #bbb;font-size:11px">' + bankName + '</td>'
+        + '</tr>'
+        + '<tr><td style="padding:4px 8px;border:1px solid #bbb;background:#f7f7f7;font-size:11px">支店名</td><td style="padding:4px 8px;border:1px solid #bbb;font-size:11px">' + bankBranch + '</td></tr>'
+        + '<tr><td style="padding:4px 8px;border:1px solid #bbb;background:#f7f7f7;font-size:11px">口座種別</td><td style="padding:4px 8px;border:1px solid #bbb;font-size:11px">' + bankType + '</td></tr>'
+        + '<tr><td style="padding:4px 8px;border:1px solid #bbb;background:#f7f7f7;font-size:11px">口座番号</td><td style="padding:4px 8px;border:1px solid #bbb;font-size:11px">' + bankNo + '</td></tr>'
+        + '<tr><td style="padding:4px 8px;border:1px solid #bbb;background:#f7f7f7;font-size:11px">口座名義</td><td style="padding:4px 8px;border:1px solid #bbb;font-size:11px">' + bankHolder + '</td></tr>'
+        + (dueDate ? '<tr><td></td><td style="padding:4px 8px;border:1px solid #bbb;background:#f7f7f7;font-size:11px">お支払い期限</td><td style="padding:4px 8px;border:1px solid #bbb;font-size:11px">' + dueDate + '　<span style="color:#666;font-size:10px">（※お振込手数料は御社ご負担にてお願い致します）</span></td></tr>' : '')
+        + '</table>';
+    }
+
+    document.getElementById('inv-doc').innerHTML =
+      '<div style="font-family:\'Noto Sans JP\',sans-serif;font-size:12px;color:#222;line-height:1.6;background:#fff;padding:28px;box-sizing:border-box">'
+
+      // タイトル（左ボックス）＋請求日（右）
+      + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">'
+      +   '<div style="background:'+BLUE+';color:white;padding:6px 20px;font-size:17px;font-weight:700;letter-spacing:6px">請　求　書</div>'
+      +   '<div style="font-size:11px;color:#444;margin-top:4px">請求日：&ensp;' + issueDate + '</div>'
+      + '</div>'
+
+      // 宛先 ＋ 発行者
+      + '<div style="display:flex;justify-content:space-between;gap:20px;margin-bottom:14px;align-items:flex-start">'
+      +   '<div style="flex:1;min-width:0">'
+      +     '<div style="font-size:16px;font-weight:700;border-bottom:2px solid #222;padding-bottom:4px;margin-bottom:6px">湘南レーベル株式会社　御 中</div>'
+      +     '<div style="font-size:10px;color:#444">〒251-0035　神奈川県藤沢市片瀬海岸1-13-18</div>'
+      +     '<div style="font-size:10px;color:#444;margin-left:16px">ホテル事業部　住野様</div>'
+      +   '</div>'
+      +   '<div style="font-size:11px;line-height:1.8;flex-shrink:0;min-width:190px;border-left:1px solid #ddd;padding-left:14px">'
+      +     '<div style="font-size:12px;font-weight:700;margin-bottom:4px">' + fromName + '</div>'
+      +     '<div style="color:#555">' + fromZip + '</div>'
+      +     '<div>' + fromAddr + '</div>'
+      +     (fromBldg ? '<div>' + fromBldg + '</div>' : '')
+      +     (fromTel ? '<div><span style="color:#555">☎&ensp;</span>' + fromTel + '</div>' : '')
+      +   '</div>'
+      + '</div>'
+
+      // 挨拶
+      + '<div style="font-size:11px;margin-bottom:10px">下記の通り、ご請求申し上げます。</div>'
+
+      // 請求金額ボックス
+      + '<table style="border-collapse:collapse;margin-bottom:16px">'
+      +   '<tr>'
+      +     '<td style="background:'+BLUE+';color:white;padding:6px 14px;font-size:11px;font-weight:700;white-space:nowrap;border:2px solid '+BLUE+'">請求金額</td>'
+      +     '<td style="border:2px solid '+BLUE+';padding:6px 24px 6px 16px;font-size:20px;font-weight:700;text-align:right;min-width:160px;background:white">' + fmtYen(total) + '-</td>'
+      +   '</tr>'
+      + '</table>'
+
+      // 明細テーブル
+      + '<div style="overflow-x:auto;margin-bottom:8px">'
+      + '<table style="width:100%;border-collapse:collapse;border:1px solid '+BLUE+';min-width:400px">'
+      +   '<thead><tr style="background:'+BLUE+';color:white">'
+      +     '<th style="padding:6px;text-align:center;width:24px;border-right:1px solid rgba(255,255,255,0.3);font-size:11px">No.</th>'
+      +     '<th style="padding:6px 8px;text-align:center;border-right:1px solid rgba(255,255,255,0.3);font-size:11px">商品名　／　品名</th>'
+      +     '<th style="padding:6px;text-align:center;width:44px;border-right:1px solid rgba(255,255,255,0.3);font-size:11px">数&ensp;量</th>'
+      +     '<th style="padding:6px 8px;text-align:center;width:80px;border-right:1px solid rgba(255,255,255,0.3);font-size:11px">単&ensp;価</th>'
+      +     '<th style="padding:6px 8px;text-align:center;width:80px;font-size:11px">金&ensp;額</th>'
+      +   '</tr></thead>'
+      +   '<tbody>' + rows.join('') + '</tbody>'
+      + '</table>'
+      + '</div>'
+
+      // 集計（テーブル外・右寄せ）
+      + '<div style="display:flex;justify-content:flex-end;margin-bottom:14px">'
+      +   '<table style="border-collapse:collapse;font-size:11px">'
+      +     '<tr>'
+      +       '<td style="padding:4px 12px;text-align:right;width:130px">小&emsp;計</td>'
+      +       '<td style="padding:4px 12px;text-align:right;width:90px">' + fmtYen(subtotal) + '</td>'
+      +     '</tr>'
+      +     '<tr style="color:'+(isShohi?'#222':'#cc0000')+'">'
+      +       '<td style="padding:4px 12px;text-align:right">' + taxLabel + '</td>'
+      +       '<td style="padding:4px 12px;text-align:right">' + taxDisplay + '</td>'
+      +     '</tr>'
+      +     '<tr style="border-top:1px solid #aaa;font-weight:700">'
+      +       '<td style="padding:4px 12px;text-align:right">合&emsp;計（税込）</td>'
+      +       '<td style="padding:4px 12px;text-align:right">' + fmtYen(total) + '</td>'
+      +     '</tr>'
+      +   '</table>'
+      + '</div>'
+
+      // 備考欄
+      + '<div style="border:1px solid #ccc;margin-bottom:14px">'
+      +   '<div style="background:#f5f5f5;padding:4px 8px;font-size:11px;font-weight:700;border-bottom:1px solid #ccc">備考欄</div>'
+      +   '<div style="padding:8px;min-height:36px;font-size:11px;white-space:pre-wrap">' + (remarks||'') + '</div>'
+      + '</div>'
+
+      // 振込先
+      + bankHtml
+
+      + '</div>';
+
+  } else {
+    // ============================================================
+    // 見積書 レイアウト
+    // ============================================================
+    var minRowsM = 5;
+    var rowsM = invItems.map(function(it, idx) {
+      var amt = it.qty * it.price;
+      return '<tr style="border-bottom:1px solid #bbb">'
+        + '<td style="padding:5px 8px;border-right:1px dashed #aaa;font-size:11px">' + it.desc + '</td>'
+        + '<td style="padding:5px 6px;border-right:1px dashed #aaa;text-align:right;width:44px;font-size:11px">' + (it.qty||'') + '</td>'
+        + '<td style="padding:5px 8px;border-right:1px dashed #aaa;text-align:right;width:80px;font-size:11px">' + (it.price ? fmtYen(it.price) : '') + '</td>'
+        + '<td style="padding:5px 8px;text-align:right;width:80px;font-size:11px">' + (amt ? fmtYen(amt) : '') + '</td>'
+        + '</tr>';
+    });
+    while (rowsM.length < minRowsM) rowsM.push(
+      '<tr style="border-bottom:1px solid #bbb">'
+      + '<td style="padding:5px 8px;border-right:1px dashed #aaa;height:24px"></td>'
+      + '<td style="padding:5px 6px;border-right:1px dashed #aaa"></td>'
+      + '<td style="padding:5px 8px;border-right:1px dashed #aaa"></td>'
+      + '<td style="padding:5px 8px"></td>'
+      + '</tr>'
+    );
+
+    // 集計 右下付随
+    var subtotalRowsM =
+      '<tr>'
+      + '<td colspan="3" style="border:none;padding:0"></td>'
+      + '<td style="padding:0;vertical-align:top">'
+      +   '<table style="width:100%;border-collapse:collapse;font-size:11px">'
+      +     '<tr><td style="padding:4px 8px;background:'+BLUE2+';text-align:right;border:1px solid '+BLUE+';white-space:nowrap">小　計</td><td style="padding:4px 8px;background:'+BLUE2+';text-align:right;border:1px solid '+BLUE+';width:80px">' + fmtYen(subtotal) + '</td></tr>'
+      +     '<tr><td style="padding:4px 8px;background:'+BLUE2+';text-align:right;border:1px solid '+BLUE+';color:'+(isShohi?'#222':'#cc0000')+'">' + taxLabel + '</td><td style="padding:4px 8px;background:'+BLUE2+';text-align:right;border:1px solid '+BLUE+';color:'+(isShohi?'#222':'#cc0000')+'">' + taxDisplay + '</td></tr>'
+      +     '<tr><td style="padding:4px 8px;background:'+BLUE3+';text-align:right;border:1px solid '+BLUE+';color:white;font-weight:700">合計（税込）</td><td style="padding:4px 8px;background:'+BLUE3+';text-align:right;border:1px solid '+BLUE+';color:white;font-weight:700">' + fmtYen(total) + '</td></tr>'
+      +   '</table>'
+      + '</td>'
       + '</tr>';
-  });
-  while (rows.length < 6) rows.push(
-    '<tr>'
-    + (isSeikyu ? '<td style="border:1px solid #d8d8d6;height:7.5mm;width:8mm"></td>' : '')
-    + '<td style="border:1px solid #d8d8d6;height:7.5mm"></td>'
-    + '<td style="border:1px solid #d8d8d6"></td>'
-    + '<td style="border:1px solid #d8d8d6"></td>'
-    + '<td style="border:1px solid #d8d8d6"></td>'
-    + '</tr>'
-  );
 
-  // Bank
-  var bankHtml = '';
-  if (bankName || bankBranch || bankNo || bankHolder) {
-    bankHtml =
-      '<table style="border-collapse:collapse;width:60%">'
-      + '<tr><td style="border:none;padding:1mm 3mm;font-size:8.5pt;width:20mm;color:#333">銀行名：</td><td style="border:none;padding:1mm 3mm;font-size:8.5pt">' + bankName + '</td></tr>'
-      + '<tr><td style="border:none;padding:1mm 3mm;font-size:8.5pt;color:#333">支店名：</td><td style="border:none;padding:1mm 3mm;font-size:8.5pt">' + bankBranch + '</td></tr>'
-      + '<tr><td style="border:none;padding:1mm 3mm;font-size:8.5pt;color:#333">口座種別：</td><td style="border:none;padding:1mm 3mm;font-size:8.5pt">　' + bankType + '</td></tr>'
-      + '<tr><td style="border:none;padding:1mm 3mm;font-size:8.5pt;color:#333">口座番号：</td><td style="border:none;padding:1mm 3mm;font-size:8.5pt">' + bankNo + '</td></tr>'
-      + '<tr><td style="border:none;padding:1mm 3mm;font-size:8.5pt;color:#333">口座名義：</td><td style="border:none;padding:1mm 3mm;font-size:8.5pt">' + bankHolder + '</td></tr>'
-      + (dueDate ? '<tr><td style="border:none;padding:1mm 3mm;font-size:8.5pt;color:#333">お支払い期限：</td><td style="border:none;padding:1mm 3mm;font-size:8.5pt">' + dueDate + '</td></tr>' : '')
-      + '</table>';
+    var bankHtmlM = '';
+    if (bankName || bankBranch || bankNo || bankHolder) {
+      bankHtmlM =
+        '<table style="border-collapse:collapse;font-size:11px;margin-top:12px">'
+        + '<tr>'
+        +   '<td rowspan="5" style="padding:4px 10px;font-weight:700;vertical-align:middle;border:1px solid #bbb;background:#f0f0f0;text-align:center;width:46px;font-size:11px">振込先</td>'
+        +   '<td style="padding:4px 8px;border:1px solid #bbb;background:#f7f7f7;width:66px;font-size:11px">銀行名</td>'
+        +   '<td style="padding:4px 8px;border:1px solid #bbb;font-size:11px">' + bankName + '</td>'
+        + '</tr>'
+        + '<tr><td style="padding:4px 8px;border:1px solid #bbb;background:#f7f7f7;font-size:11px">支店名</td><td style="padding:4px 8px;border:1px solid #bbb;font-size:11px">' + bankBranch + '</td></tr>'
+        + '<tr><td style="padding:4px 8px;border:1px solid #bbb;background:#f7f7f7;font-size:11px">口座種別</td><td style="padding:4px 8px;border:1px solid #bbb;font-size:11px">' + bankType + '</td></tr>'
+        + '<tr><td style="padding:4px 8px;border:1px solid #bbb;background:#f7f7f7;font-size:11px">口座番号</td><td style="padding:4px 8px;border:1px solid #bbb;font-size:11px">' + bankNo + '</td></tr>'
+        + '<tr><td style="padding:4px 8px;border:1px solid #bbb;background:#f7f7f7;font-size:11px">口座名義</td><td style="padding:4px 8px;border:1px solid #bbb;font-size:11px">' + bankHolder + '</td></tr>'
+        + '</table>';
+    }
+
+    document.getElementById('inv-doc').innerHTML =
+      '<div style="font-family:\'Noto Sans JP\',sans-serif;font-size:12px;color:#222;line-height:1.6;background:#fff;padding:28px;box-sizing:border-box">'
+
+      // タイトル全幅帯
+      + '<div style="background:'+BLUE+';color:white;text-align:center;padding:8px 0;font-size:20px;font-weight:700;letter-spacing:6px;margin-bottom:12px">見&emsp;積&emsp;書</div>'
+
+      // 発行日
+      + '<div style="text-align:right;font-size:11px;margin-bottom:12px;color:#444">発行日&emsp;' + issueDate + '</div>'
+
+      // 宛先 ＋ 発行者
+      + '<div style="display:flex;justify-content:space-between;gap:20px;margin-bottom:14px;align-items:flex-start">'
+      +   '<div style="flex:1;min-width:0">'
+      +     '<div style="font-size:16px;font-weight:700;border-bottom:2px solid #222;padding-bottom:4px;margin-bottom:6px">湘南レーベル株式会社　御中</div>'
+      +     '<div style="font-size:10px;color:#444">〒251-0035</div>'
+      +     '<div style="font-size:10px;color:#444">神奈川県藤沢市片瀬海岸1-13-18</div>'
+      +   '</div>'
+      +   '<div style="font-size:11px;line-height:1.8;flex-shrink:0;min-width:190px">'
+      +     '<div><span style="color:#666">氏名：</span>' + fromName + '</div>'
+      +     '<div style="color:#555">' + fromZip + '</div>'
+      +     '<div><span style="color:#666">住所：</span>' + fromAddr + '</div>'
+      +     (fromBldg ? '<div style="padding-left:36px">' + fromBldg + '</div>' : '')
+      +     (fromTel ? '<div><span style="color:#666">電話：</span>' + fromTel + '</div>' : '')
+      +   '</div>'
+      + '</div>'
+
+      // 挨拶
+      + '<div style="font-size:11px;margin-bottom:10px">下記の通り、お見積り申し上げます。</div>'
+
+      // 金額ボックス（左寄せ・約半幅）
+      + '<div style="border:1px solid '+BLUE+';margin-bottom:14px;overflow:hidden;width:55%">'
+      +   '<div style="background:'+BLUE+';color:white;text-align:center;padding:5px;font-size:11px">お見積り金額（税込）</div>'
+      +   '<div style="text-align:right;font-size:22px;font-weight:700;padding:10px 16px">' + fmtYen(total) + '</div>'
+      + '</div>'
+
+      // 明細テーブル
+      + '<div style="overflow-x:auto;margin-bottom:14px">'
+      + '<table style="width:100%;border-collapse:collapse;border:1px solid '+BLUE+';min-width:360px">'
+      +   '<thead><tr style="background:'+BLUE+';color:white">'
+      +     '<th style="padding:6px 8px;text-align:center;border-right:1px solid rgba(255,255,255,0.4);font-size:11px">内容</th>'
+      +     '<th style="padding:6px;text-align:center;width:44px;border-right:1px solid rgba(255,255,255,0.4);font-size:11px">数量</th>'
+      +     '<th style="padding:6px 8px;text-align:center;width:80px;border-right:1px solid rgba(255,255,255,0.4);font-size:11px">単価</th>'
+      +     '<th style="padding:6px 8px;text-align:center;width:80px;font-size:11px">金額（税込）</th>'
+      +   '</tr></thead>'
+      +   '<tbody>' + rowsM.join('') + subtotalRowsM + '</tbody>'
+      + '</table>'
+      + '</div>'
+
+      // 振込先
+      + bankHtmlM
+
+      + '</div>';
   }
-
-  document.getElementById('inv-doc').innerHTML =
-    // タイトル帯
-    '<div style="background:#75777a;color:white;text-align:center;padding:3mm 6mm;font-size:18pt;font-weight:900;letter-spacing:0.4em;margin-bottom:5mm">'
-    + doctype + '</div>'
-    // 請求日
-    + '<div style="text-align:right;font-size:8.5pt;margin-bottom:5mm">'
-    + (isSeikyu ? '請求日：' : '発行日　') + issueDate + '</div>'
-    // 宛先 ＋ 発行者
-    + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5mm;gap:8mm">'
-    +   '<div style="flex:1">'
-    +     '<div style="font-size:7.5pt;color:#555;margin-bottom:1mm">〒251-0035　神奈川県藤沢市片瀬海岸1-13-18</div>'
-    +     '<div style="font-size:16pt;font-weight:900;border-bottom:2.5px solid #222;padding-bottom:2mm;margin-bottom:1mm">湘南レーベル株式会社　御中</div>'
-    +     (isSeikyu ? '<div style="font-size:8pt;color:#555;margin-top:2mm">ホテル事業部　御中</div>' : '')
-    +   '</div>'
-    +   '<div style="font-size:8.5pt;line-height:2;text-align:left;min-width:140px">'
-    +     '<div><span style="display:inline-block;width:16mm;color:#555">名　前</span>' + fromName + '</div>'
-    +     '<div><span style="display:inline-block;width:16mm;color:#555">〒</span>' + fromZip + '</div>'
-    +     '<div><span style="display:inline-block;width:16mm;color:#555">住　所：</span>' + fromAddr + '</div>'
-    +     (fromBldg ? '<div><span style="display:inline-block;width:16mm;color:#555"></span>' + fromBldg + '</div>' : '')
-    +     '<div><span style="display:inline-block;width:16mm;color:#555">☎</span>' + fromTel + '</div>'
-    +   '</div>'
-    + '</div>'
-    // 挨拶文
-    + '<div style="font-size:8.5pt;margin-bottom:3mm">下記の通り、' + actionWord + '申し上げます。</div>'
-    // 請求金額ボックス
-    + '<div style="border:1.5px solid #75777a;margin-bottom:5mm;overflow:hidden;display:inline-block;min-width:200px">'
-    +   '<div style="background:#75777a;color:white;text-align:center;padding:1.5mm 6mm;font-size:8.5pt">' + (isSeikyu ? '請求金額' : 'お見積り金額（税込）') + '</div>'
-    +   '<div style="text-align:center;font-size:22pt;font-weight:700;padding:3mm 8mm">' + fmtYen(total) + '</div>'
-    + '</div>'
-    // 明細テーブル
-    + '<table style="width:100%;border-collapse:collapse;margin-bottom:0">'
-    +   '<thead><tr>'
-    +     '<th style="background:#75777a;color:white;padding:2mm;border:1px solid #75777a;font-size:8.5pt;text-align:center;width:8mm">No.</th>'
-    +     '<th style="background:#75777a;color:white;padding:2mm 3mm;border:1px solid #75777a;font-size:8.5pt;text-align:center">商品名　／　品名</th>'
-    +     '<th style="background:#75777a;color:white;padding:2mm;border:1px solid #75777a;font-size:8.5pt;text-align:center;width:14mm">数量</th>'
-    +     '<th style="background:#75777a;color:white;padding:2mm 3mm;border:1px solid #75777a;font-size:8.5pt;text-align:center;width:26mm">単価</th>'
-    +     '<th style="background:#75777a;color:white;padding:2mm 3mm;border:1px solid #75777a;font-size:8.5pt;text-align:center;width:26mm">金額</th>'
-    +   '</tr></thead>'
-    +   '<tbody>' + rows.join('') + '</tbody>'
-    + '</table>'
-    // 小計・税・合計（右寄せ）
-    + '<div style="display:flex;justify-content:flex-end;margin-bottom:5mm">'
-    +   '<table style="border-collapse:collapse">'
-    +     '<tr>'
-    +       '<td style="padding:1.5mm 4mm;border:1px solid #d8d8d6;background:#f5f5f3;text-align:right;font-size:8.5pt;font-weight:700;width:40mm">小　計</td>'
-    +       '<td style="padding:1.5mm 4mm;border:1px solid #d8d8d6;text-align:right;font-size:8.5pt;width:30mm">' + fmtYen(subtotal) + '</td>'
-    +     '</tr>'
-    +     '<tr>'
-    +       '<td style="padding:1.5mm 4mm;border:1px solid #d8d8d6;background:#f5f5f3;text-align:right;font-size:8.5pt;font-weight:700;color:' + (isShohi?'#222':'#cc0000') + '">' + taxLabel + '</td>'
-    +       '<td style="padding:1.5mm 4mm;border:1px solid #d8d8d6;text-align:right;font-size:8.5pt;color:' + (isShohi?'#222':'#cc0000') + '">' + taxDisplay + '</td>'
-    +     '</tr>'
-    +     '<tr>'
-    +       '<td style="padding:1.5mm 4mm;border:1px solid #d8d8d6;background:#eaeae8;text-align:right;font-size:8.5pt;font-weight:700">合　計（税込）</td>'
-    +       '<td style="padding:1.5mm 4mm;border:1px solid #d8d8d6;background:#eaeae8;text-align:right;font-size:8.5pt;font-weight:700">' + fmtYen(total) + '</td>'
-    +     '</tr>'
-    +   '</table>'
-    + '</div>'
-    // 備考欄
-    + '<div style="border:1px solid #d8d8d6;margin-bottom:5mm">'
-    +   '<div style="background:#f5f5f3;padding:1.5mm 3mm;font-size:8pt;font-weight:700;border-bottom:1px solid #b0c4d8;color:#333">備考欄</div>'
-    +   '<div style="padding:2mm 3mm;font-size:8.5pt;min-height:12mm;white-space:pre-wrap">' + (remarks||'') + '</div>'
-    + '</div>'
-    // 振込先
-    + (bankHtml ? '<div style="font-size:8.5pt;font-weight:700;margin-bottom:2mm">振込先</div>' + bankHtml : '');
 }
 
 function printInvoice() {
@@ -1459,8 +1584,99 @@ function printInvoice() {
 // ============================================================
 // ISSUER PROFILES (発行者マスタ)
 // ============================================================
+const DEFAULT_PROFILES = [
+  {
+    name: '金井 彩乃',
+    zip: '〒168-0074',
+    addr: '東京都杉並区上高井戸一丁目4-14',
+    bldg: 'ルーブル上高井戸弐番館704',
+    tel: '090-9791-6648',
+    bankName: '西日本シティ銀行',
+    bankBranch: '港町支店',
+    bankType: '普通',
+    bankNo: '3003494',
+    bankHolder: 'ｶﾅｲ ｱﾔﾉ',
+  },
+  {
+    name: '坂本 夢雲',
+    zip: '〒156-0043',
+    addr: '東京都世田谷区松原6-42-8',
+    bldg: '',
+    tel: '070-8549-3132',
+    bankName: 'りそな銀行',
+    bankBranch: '祖師谷支店',
+    bankType: '普通',
+    bankNo: '1652621',
+    bankHolder: 'ｻｶﾓﾄ ﾑｰﾝ',
+  },
+  {
+    name: 'KATHILN HARUMI PEREIRA OGUIDO',
+    zip: '〒253-0011',
+    addr: '神奈川県茅ヶ崎市菱沼2-8-26',
+    bldg: '',
+    tel: '080-4630-2605',
+    bankName: 'みずほ銀行',
+    bankBranch: '秦野',
+    bankType: '普通',
+    bankNo: '2018669',
+    bankHolder: 'KATHILN HARUMI PEREIRA OGUIDO',
+  },
+  {
+    name: '小川 春樹',
+    zip: '〒145-0075',
+    addr: '東京都大田区西嶺町31-4',
+    bldg: '',
+    tel: '070-1558-0055',
+    bankName: 'ゆうちょ銀行',
+    bankBranch: '一三八店',
+    bankType: '普通',
+    bankNo: '1193172',
+    bankHolder: 'ｵｶﾞﾜﾊﾙｷ',
+  },
+  {
+    name: 'ROCHA NISHIMURA CAROLINA',
+    zip: '〒251-0027',
+    addr: '神奈川県藤沢市鵠沼桜ヶ丘1-14-3',
+    bldg: 'テラスフルール102',
+    tel: '080-4418-0509',
+    bankName: 'ゆうちょ銀行',
+    bankBranch: '〇四八支店',
+    bankType: '普通',
+    bankNo: '35524991',
+    bankHolder: 'ﾛｼｱ ﾆｼﾑﾗ ｶﾛﾘﾅ',
+  },
+  {
+    name: '薮 来希',
+    zip: '〒252-0861',
+    addr: '神奈川県藤沢市遠藤703-12',
+    bldg: '滝の沢コープタウンE203',
+    tel: '080-8807-6767',
+    bankName: 'スルガ銀行',
+    bankBranch: '湘南ライフタウン支店',
+    bankType: '普通',
+    bankNo: '3709828',
+    bankHolder: 'ﾔﾌﾞﾗｲｷ',
+  },
+  {
+    name: '阿嘉 知之',
+    zip: '〒164-0014',
+    addr: '東京都中野区南台2-50-18',
+    bldg: 'グレイシャス南台105',
+    tel: '070-5491-1256',
+    bankName: '楽天銀行',
+    bankBranch: 'タクト支店',
+    bankType: '普通',
+    bankNo: '2512580',
+    bankHolder: 'ｱｶﾄﾓﾕｷ',
+  }
+];
+
 function loadProfiles() {
-  return JSON.parse(localStorage.getItem('inv_profiles') || '[]');
+  var saved = localStorage.getItem('inv_profiles');
+  if (saved) {
+    try { return JSON.parse(saved); } catch(e) {}
+  }
+  return JSON.parse(JSON.stringify(DEFAULT_PROFILES));
 }
 function saveProfiles(profiles) {
   localStorage.setItem('inv_profiles', JSON.stringify(profiles));
