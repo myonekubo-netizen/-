@@ -37,7 +37,7 @@
   .badge.ok b { color: #7ac48a; }
 
   .tabs { display: flex; gap: 0; padding: 0 24px; border-bottom: 1px solid var(--border); background: var(--surface); flex-wrap: wrap; }
-  .tab { padding: 12px 18px; border-radius: 0; cursor: pointer; font-size: 11px; font-weight: 500; color: var(--text3); border: none; border-bottom: 2px solid transparent; transition: all 0.2s; background: transparent; letter-spacing: 0.06em; text-transform: uppercase; }
+  .tab { padding: 12px 18px; border-radius: 0; cursor: pointer; font-size: 11px; font-weight: 500; color: var(--text3); border: none; border-bottom: 2px solid transparent; transition: all 0.2s; background: transparent; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; }
   .tab:hover { color: var(--text2); border-bottom-color: var(--accent-light); }
   .tab.active { color: var(--text); border-bottom: 2px solid var(--accent); font-weight: 600; }
 
@@ -51,13 +51,13 @@
   .add-btn { margin-left: auto; padding: 6px 16px; background: var(--text); color: white; border: none; border-radius: 2px; font-size: 11px; cursor: pointer; font-family: 'Noto Sans JP', sans-serif; font-weight: 500; letter-spacing: 0.08em; }
   .add-btn:hover { background: var(--accent); }
 
-  .table-wrap { padding: 0 24px 24px; overflow-x: auto; }
-  table { width: 100%; border-collapse: separate; border-spacing: 0 4px; min-width: 900px; }
+  .table-wrap { padding: 0 16px 16px; overflow-x: auto; }
+  table { width: 100%; border-collapse: separate; border-spacing: 0 4px; min-width: 0; }
   thead th { padding: 10px 10px; text-align: left; font-size: 9px; font-weight: 600; letter-spacing: 0.12em; color: var(--text3); text-transform: uppercase; white-space: nowrap; user-select: none; }
   thead th:hover { color: var(--accent); }
   tbody tr { background: var(--surface); transition: background 0.15s; border-bottom: 1px solid var(--border); }
   tbody tr:hover { background: #f5f5f3; }
-  tbody td { padding: 10px 10px; vertical-align: middle; border: none; }
+  tbody td { padding: 7px 6px; vertical-align: middle; border: none; }
   tbody td:first-child { }
   tbody td:last-child { }
 
@@ -76,16 +76,17 @@
   .st-waiting { background: #eaeaf0; color: #6a6a8a; }
   .st-skip { background: #eef2f5; color: #75777a; }
 
-  .amount { font-family: 'DM Mono', monospace; font-size: 12px; white-space: nowrap; }
+  .amount { font-family: 'DM Mono', monospace; font-size: 11px; white-space: nowrap; }
   .amount-cam { color: var(--accent-dark); }
   .amount-model { color: var(--text2); }
   .amount-zero { color: var(--text3); }
   .date-col { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text2); white-space: nowrap; }
-  .type-col { color: var(--text2); font-size: 11px; }
-  .model-col { font-size: 11px; color: var(--text2); }
-  .note-col { font-size: 11px; color: var(--text3); max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border-radius: 4px; padding: 2px 4px; }
+  .type-col { color: var(--text2); font-size: 11px; white-space: nowrap; }
+  .model-col { font-size: 11px; color: var(--text2); white-space: nowrap; }
+  .cam-nowrap { white-space: nowrap; font-size: 12px; }
+  .note-col { font-size: 10px; color: var(--text3); max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border-radius: 4px; padding: 2px 4px; }
   .note-col:focus { outline: 2px solid var(--accent); color: var(--text); white-space: normal; overflow: visible; background: #fff; }
-  .delivery-col { font-size: 11px; color: var(--text2); max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .delivery-col { font-size: 10px; color: var(--text2); max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
   .edit-btn, .del-btn { padding: 3px 8px; border-radius: 2px; border: 1px solid var(--border); background: transparent; color: var(--text3); font-size: 10px; cursor: pointer; transition: all 0.15s; letter-spacing: 0.03em; }
   .edit-btn:hover { color: var(--text); border-color: var(--text); }
@@ -184,22 +185,34 @@
   .cam-table { padding: 20px; }
 
   /* INVOICE TAB */
-  .invoice-tab-wrap { display: flex; gap: 20px; padding: 20px; }
-  .invoice-sidebar { width: 280px; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px; }
-  .invoice-preview { flex: 1; }
-  .inv-section { background: var(--surface); border: 1px solid var(--border); border-radius: 2px; padding: 16px; }
-  .inv-section-title { font-size: 11px; font-weight: 600; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px; }
-  .inv-form-row { display: flex; flex-direction: column; gap: 3px; margin-bottom: 8px; }
-  .inv-form-row label { font-size: 11px; color: var(--text2); }
-  .inv-form-row input, .inv-form-row select, .inv-form-row textarea { font-size: 12px; padding: 6px 8px; background: #fff; border: 1px solid var(--border); border-radius: 5px; color: var(--text); font-family: 'Noto Sans JP', sans-serif; outline: none; width: 100%; }
-  .inv-form-row input:focus, .inv-form-row select:focus { border-color: var(--accent); }
-  .inv-item-row { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
-  .inv-item-row input { flex: 1; }
-  .inv-item-row input.qty { width: 50px; flex: none; }
-  .inv-item-row input.price { width: 90px; flex: none; }
-  .inv-del-row { padding: 2px 6px; border: 1px solid var(--border); border-radius: 4px; background: transparent; color: var(--text3); cursor: pointer; font-size: 11px; }
+  .invoice-tab-wrap { display: flex; gap: 0; height: calc(100vh - 120px); }
+  .invoice-sidebar {
+    width: 300px; flex-shrink: 0; display: flex; flex-direction: column; gap: 0;
+    border-right: 1px solid var(--border); overflow-y: auto; background: var(--surface);
+  }
+  .invoice-sidebar-inner { display: flex; flex-direction: column; gap: 10px; padding: 16px; }
+  .invoice-preview {
+    flex: 1; overflow-y: auto; background: #e8e8e6; padding: 24px;
+    display: flex; justify-content: center;
+  }
+  .inv-doc-wrap {
+    background: white; width: 100%; max-width: 740px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.15);
+  }
+  .inv-section { background: var(--surface); border: 1px solid var(--border); border-radius: 2px; padding: 14px; }
+  .inv-section-title { font-size: 10px; font-weight: 700; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  .inv-form-row { display: flex; flex-direction: column; gap: 3px; margin-bottom: 7px; }
+  .inv-form-row:last-child { margin-bottom: 0; }
+  .inv-form-row label { font-size: 10px; color: var(--text3); letter-spacing: 0.04em; }
+  .inv-form-row input, .inv-form-row select, .inv-form-row textarea { font-size: 12px; padding: 6px 8px; background: #fff; border: 1px solid var(--border); border-radius: 2px; color: var(--text); font-family: 'Noto Sans JP', sans-serif; outline: none; width: 100%; }
+  .inv-form-row input:focus, .inv-form-row select:focus, .inv-form-row textarea:focus { border-color: var(--accent); }
+  .inv-item-row { display: flex; gap: 5px; align-items: center; margin-bottom: 5px; }
+  .inv-item-row input { flex: 1; min-width: 0; }
+  .inv-item-row input.qty { width: 44px; flex: none; text-align: right; }
+  .inv-item-row input.price { width: 80px; flex: none; text-align: right; }
+  .inv-del-row { padding: 2px 6px; border: 1px solid var(--border); border-radius: 2px; background: transparent; color: var(--text3); cursor: pointer; font-size: 10px; flex-shrink: 0; }
   .inv-del-row:hover { color: var(--danger); border-color: var(--danger); }
-  .inv-add-row { width: 100%; padding: 6px; border: 1px dashed var(--border); border-radius: 5px; background: transparent; color: var(--text3); font-size: 12px; cursor: pointer; font-family: 'Noto Sans JP', sans-serif; margin-top: 4px; }
+  .inv-add-row { width: 100%; padding: 5px; border: 1px dashed var(--border); border-radius: 2px; background: transparent; color: var(--text3); font-size: 11px; cursor: pointer; font-family: 'Noto Sans JP', sans-serif; margin-top: 4px; }
   .inv-add-row:hover { border-color: var(--accent); color: var(--accent); }
   .print-btn { width: 100%; padding: 10px; background: var(--text); color: white; border: none; border-radius: 2px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'Noto Sans JP', sans-serif; letter-spacing: 0.08em; }
   .print-btn:hover { background: var(--accent); }
@@ -207,36 +220,19 @@
   .switch-doc-btn:hover { border-color: var(--accent); color: var(--accent); }
 
   /* INVOICE PRINT DOCUMENT */
-  .inv-doc {
-    background: white; width: 210mm; height: 297mm; margin: 0 auto;
-    padding: 10mm 12mm; box-shadow: 0 4px 24px rgba(0,0,0,0.12);
-    font-family: 'Noto Sans JP', sans-serif; font-size: 8.5pt; color: #111;
-    box-sizing: border-box; line-height: 1.4; overflow: hidden;
-  }
-  .id-title { text-align: center; font-size: 18pt; font-weight: 900; letter-spacing: 0.3em; margin-bottom: 2mm; }
-  .id-issueline { text-align: right; font-size: 8pt; margin-bottom: 3mm; color: #333; }
-  .id-header { display: flex; justify-content: space-between; gap: 4mm; margin-bottom: 3mm; }
-  .id-to { flex: 1; }
-  .id-to-company { font-size: 13pt; font-weight: 700; border-bottom: 2px solid #111; padding-bottom: 1.5mm; margin-bottom: 1mm; }
-  .id-to-addr { font-size: 7pt; color: #555; margin-bottom: 1mm; }
-  .id-from { font-size: 7.5pt; text-align: right; line-height: 1.9; }
-  .id-greeting { font-size: 8pt; margin-bottom: 2mm; }
-  .id-amount-box { margin-bottom: 3mm; }
-  .id-amount-label { background: #2f6fa8; color: white; padding: 1.5mm 4mm; font-size: 8pt; text-align: center; }
-  .id-amount-val { background: #d6e4f0; text-align: center; font-size: 22pt; font-weight: 700; padding: 2mm 4mm; letter-spacing: 0.05em; }
+  .inv-doc { background: white; width: 100%; font-family: 'Noto Sans JP', sans-serif; color: #111; box-sizing: border-box; }
 
   @media print {
     body > *:not(#print-area) { display: none !important; }
     #print-area { display: block !important; }
-    .inv-doc { box-shadow: none; margin: 0; padding: 10mm 12mm; }
-    @page { size: A4; margin: 0; }
+    @page { size: A4 portrait; margin: 12mm 14mm; }
   }
 </style>
 </head>
 <body>
 
 <div class="header">
-  <div class="header-title">8HOTEL &nbsp;<span style="color:rgba(255,255,255,0.3);margin:0 6px">|</span>&nbsp; <span>撮影</span>進捗管理</div>
+  <div class="header-title"><span>撮影</span>進捗管理</div>
   <div class="header-badges">
     <div class="badge danger"><span>稟議未</span><b id="badge-ringi">0</b></div>
     <div class="badge warn"><span>振込未</span><b id="badge-furikomi">0</b></div>
@@ -285,11 +281,11 @@
           <th onclick="setSort('fac')" style="cursor:pointer">施設 <span id="si-fac"></span></th>
           <th onclick="setSort('type')" style="cursor:pointer">種別 <span id="si-type"></span></th>
           <th onclick="setSort('cam')" style="cursor:pointer">カメラマン <span id="si-cam"></span></th>
-          <th onclick="setSort('camFee')" style="cursor:pointer">金額(税抜) <span id="si-camFee"></span></th>
-          <th>稟議</th><th>振込</th><th>請求書</th><th>経理共有</th><th>支払確認</th>
+          <th onclick="setSort('camFee')" style="cursor:pointer">金額 <span id="si-camFee"></span></th>
+          <th title="稟議">稟</th><th title="振込依頼">振</th><th title="請求書受領">請</th><th title="経理共有">経</th><th title="支払確認">支</th>
           <th onclick="setSort('model')" style="cursor:pointer">モデル <span id="si-model"></span></th>
-          <th onclick="setSort('modelFee')" style="cursor:pointer">モデル金額(税込) <span id="si-modelFee"></span></th>
-          <th>モデル稟議</th><th>モデル請求書</th><th>モデル支払</th>
+          <th onclick="setSort('modelFee')" style="cursor:pointer">M金額 <span id="si-modelFee"></span></th>
+          <th title="モデル稟議">稟</th><th title="モデル請求書">請</th><th title="モデル支払">支</th>
           <th>稟議番号</th><th>納品</th><th>備考</th><th></th>
         </tr>
       </thead>
@@ -370,6 +366,7 @@
 <div id="tab-invoice" style="display:none">
   <div class="invoice-tab-wrap">
     <div class="invoice-sidebar">
+    <div class="invoice-sidebar-inner">
       <div class="inv-section">
         <div class="inv-section-title">書類設定</div>
         <div class="inv-form-row">
@@ -445,10 +442,13 @@
       <button class="switch-doc-btn" onclick="saveInvoiceProfile()">💾 発行者情報を保存</button>
       <button class="print-btn" onclick="printInvoice()">🖨 印刷 / PDF出力</button>
     </div>
+  </div>
 
-    <div class="invoice-preview" id="invoice-preview-wrap">
+  <div class="invoice-preview" id="invoice-preview-wrap">
+    <div class="inv-doc-wrap">
       <div class="inv-doc" id="inv-doc"></div>
     </div>
+  </div>
   </div>
 </div>
 
@@ -608,13 +608,14 @@ function stF(st, id, field, idx) {
   if (id !== undefined) {
     const oc = `onclick="toggleSt(${id},'${field}',${idx})"`;
     const cls = st==='done' ? 'st-done' : st==='pending' ? 'st-pending' : st==='waiting' ? 'st-waiting' : st==='skip' ? 'st-skip' : 'st-none';
-    const lbl = st==='done' ? '✓' : st==='pending' ? '!' : st==='waiting' ? '⋯' : st==='skip' ? '不要' : '—';
-    return `<span class="st ${cls}" style="cursor:pointer" title="クリックで切替" ${oc}>${lbl}</span>`;
+    const lbl = st==='done' ? '✓' : st==='pending' ? '!' : st==='waiting' ? '⋯' : st==='skip' ? '否' : '—';
+    const title = st==='done' ? '済' : st==='pending' ? '未' : st==='waiting' ? '待ち' : st==='skip' ? '不要' : '未入力';
+    return `<span class="st ${cls}" style="cursor:pointer;padding:1px 5px;font-size:10px" title="${title}（クリックで切替）" ${oc}>${lbl}</span>`;
   }
-  if (st==='done')    return '<span class="st st-done">✓</span>';
-  if (st==='pending') return '<span class="st st-pending">!</span>';
-  if (st==='waiting') return '<span class="st st-waiting">⋯</span>';
-  return '<span class="st st-none">—</span>';
+  if (st==='done')    return '<span class="st st-done" style="padding:1px 5px;font-size:10px">✓</span>';
+  if (st==='pending') return '<span class="st st-pending" style="padding:1px 5px;font-size:10px">!</span>';
+  if (st==='waiting') return '<span class="st st-waiting" style="padding:1px 5px;font-size:10px">⋯</span>';
+  return '<span class="st st-none" style="padding:1px 5px;font-size:10px">—</span>';
 }
 function toggleSt(id, field, idx) {
   const d = data.find(x=>x.id===id);
@@ -680,13 +681,13 @@ function renderList() {
     <td class="date-col">${fmtDate(d.date)}</td>
     <td>${facChip(d.fac)}</td>
     <td class="type-col">${d.type}</td>
-    <td style="font-size:12px">${d.cam}</td>
+    <td style="font-size:12px;white-space:nowrap">${d.cam}</td>
     <td class="amount amount-cam">${d.camFee>0?'¥'+d.camFee.toLocaleString():'<span class="amount-zero">—</span>'}</td>
     <td>${stF(d.cam_s[0],d.id,'cam_s',0)}</td><td>${stF(d.cam_s[1],d.id,'cam_s',1)}</td><td>${stF(d.cam_s[2],d.id,'cam_s',2)}</td><td>${stF(d.cam_s[3],d.id,'cam_s',3)}</td><td>${stF(d.cam_s[4],d.id,'cam_s',4)}</td>
     <td class="model-col">${d.model||'—'}</td>
     <td class="amount amount-model">${d.modelFee>0?'¥'+d.modelFee.toLocaleString():'<span class="amount-zero">—</span>'}</td>
     <td>${stF(d.mod_s[0],d.id,'mod_s',0)}</td><td>${stF(d.mod_s[2],d.id,'mod_s',2)}</td><td>${stF(d.mod_s[3],d.id,'mod_s',3)}</td>
-    <td style="font-size:11px;font-family:'DM Mono',monospace;color:var(--text2)">${d.ringiNo||'—'}</td>
+    <td style="font-size:10px;font-family:'DM Mono',monospace;color:var(--text2);white-space:nowrap;max-width:70px;overflow:hidden;text-overflow:ellipsis">${d.ringiNo||'—'}</td>
     <td class="delivery-col" title="${d.delivery||''}">${d.delivery||'—'}</td>
     <td class="note-col" contenteditable="true" onblur="saveNote(${d.id},this)" title="${d.note||''}">${d.note||''}</td>
     <td style="white-space:nowrap">
@@ -1264,14 +1265,20 @@ function loadFromItem() {
 }
 
 function renderInvItems() {
-  document.getElementById('inv-items').innerHTML = invItems.map((item, i) =>
-    '<div class="inv-item-row">'
-    + '<input value="'+item.desc.replace(/"/g,'&quot;')+'" oninput="invItems['+i+'].desc=this.value;updateInvoicePreview()" placeholder="内容">'
-    + '<input class="qty" type="number" value="'+item.qty+'" oninput="invItems['+i+'].qty=parseFloat(this.value)||1;updateInvoicePreview()" min="1">'
-    + '<input class="price" type="number" value="'+item.price+'" oninput="invItems['+i+'].price=parseFloat(this.value)||0;updateInvoicePreview()">'
-    + '<button class="inv-del-row" onclick="removeInvItem('+i+')">✕</button>'
-    + '</div>'
-  ).join('');
+  var header = '<div style="display:flex;gap:5px;margin-bottom:4px;padding:0 1px">'
+    + '<span style="flex:1;font-size:9px;color:var(--text3)">内容</span>'
+    + '<span style="width:44px;font-size:9px;color:var(--text3);text-align:right">数量</span>'
+    + '<span style="width:80px;font-size:9px;color:var(--text3);text-align:right">単価</span>'
+    + '<span style="width:22px"></span>'
+    + '</div>';
+  document.getElementById('inv-items').innerHTML = header + invItems.map(function(item, i) {
+    return '<div class="inv-item-row">'
+      + '<input value="'+item.desc.replace(/"/g,'&quot;')+'" oninput="invItems['+i+'].desc=this.value;updateInvoicePreview()" placeholder="内容">'
+      + '<input class="qty" type="number" value="'+item.qty+'" oninput="invItems['+i+'].qty=parseFloat(this.value)||1;updateInvoicePreview()" min="1">'
+      + '<input class="price" type="number" value="'+item.price+'" oninput="invItems['+i+'].price=parseFloat(this.value)||0;updateInvoicePreview()">'
+      + '<button class="inv-del-row" onclick="removeInvItem('+i+')">✕</button>'
+      + '</div>';
+  }).join('');
 }
 
 function addInvItem() {
@@ -1489,9 +1496,9 @@ function updateInvoicePreview() {
       + '<td colspan="3" style="border:none;padding:0"></td>'
       + '<td style="padding:0;vertical-align:top">'
       +   '<table style="width:100%;border-collapse:collapse;font-size:11px">'
-      +     '<tr><td style="padding:4px 8px;background:'+BLUE2+';text-align:right;border:1px solid '+BLUE+';white-space:nowrap">小　計</td><td style="padding:4px 8px;background:'+BLUE2+';text-align:right;border:1px solid '+BLUE+';width:80px">' + fmtYen(subtotal) + '</td></tr>'
-      +     '<tr><td style="padding:4px 8px;background:'+BLUE2+';text-align:right;border:1px solid '+BLUE+';color:'+(isShohi?'#222':'#cc0000')+'">' + taxLabel + '</td><td style="padding:4px 8px;background:'+BLUE2+';text-align:right;border:1px solid '+BLUE+';color:'+(isShohi?'#222':'#cc0000')+'">' + taxDisplay + '</td></tr>'
-      +     '<tr><td style="padding:4px 8px;background:'+BLUE3+';text-align:right;border:1px solid '+BLUE+';color:white;font-weight:700">合計（税込）</td><td style="padding:4px 8px;background:'+BLUE3+';text-align:right;border:1px solid '+BLUE+';color:white;font-weight:700">' + fmtYen(total) + '</td></tr>'
+      +     '<tr><td style="padding:4px 10px;background:'+BLUE2+';text-align:right;border:1px solid '+BLUE+';white-space:nowrap;width:90px">小　計</td><td style="padding:4px 10px;background:'+BLUE2+';text-align:right;border:1px solid '+BLUE+';white-space:nowrap;width:90px">' + fmtYen(subtotal) + '</td></tr>'
+      +     '<tr><td style="padding:4px 10px;background:'+BLUE2+';text-align:right;border:1px solid '+BLUE+';white-space:nowrap;color:'+(isShohi?'#222':'#cc0000')+'">' + taxLabel + '</td><td style="padding:4px 10px;background:'+BLUE2+';text-align:right;border:1px solid '+BLUE+';white-space:nowrap;color:'+(isShohi?'#222':'#cc0000')+'">' + taxDisplay + '</td></tr>'
+      +     '<tr><td style="padding:4px 10px;background:'+BLUE3+';text-align:right;border:1px solid '+BLUE+';color:white;font-weight:700;white-space:nowrap">合計（税込）</td><td style="padding:4px 10px;background:'+BLUE3+';text-align:right;border:1px solid '+BLUE+';color:white;font-weight:700;white-space:nowrap">' + fmtYen(total) + '</td></tr>'
       +   '</table>'
       + '</td>'
       + '</tr>';
