@@ -224,8 +224,8 @@
 
   @media print {
     body > *:not(#print-area) { display: none !important; }
-    #print-area { display: block !important; }
-    @page { size: A4 portrait; margin: 12mm 14mm; }
+    #print-area { display: block !important; position: fixed; top: 0; left: 0; width: 100%; }
+    @page { size: A4 portrait; margin: 0; }
   }
 </style>
 </head>
@@ -1578,16 +1578,26 @@ function updateInvoicePreview() {
 }
 
 function printInvoice() {
-  const docHtml = document.getElementById('inv-doc').outerHTML;
-  const printArea = document.getElementById('print-area');
-  printArea.innerHTML = '<style>'
-    + '@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=DM+Mono:wght@400;500&display=swap");'
-    + 'body{font-family:"Noto Sans JP",sans-serif;margin:0;padding:0;}'
-    + document.querySelector('style').innerHTML
-    + '</style>' + docHtml;
-  printArea.style.display = 'block';
-  window.print();
-  setTimeout(() => { printArea.style.display = 'none'; printArea.innerHTML = ''; }, 1000);
+  var docHtml = document.getElementById('inv-doc').innerHTML;
+  var printWin = window.open('', '_blank', 'width=900,height=700');
+  printWin.document.write(
+    '<!DOCTYPE html><html><head>'
+    + '<meta charset="UTF-8">'
+    + '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=DM+Mono:wght@400;500&display=swap">'
+    + '<style>'
+    + '* { box-sizing: border-box; margin: 0; padding: 0; }'
+    + 'body { font-family: "Noto Sans JP", sans-serif; background: white; }'
+    + '@page { size: A4 portrait; margin: 0; }'
+    + '@media print { body { margin: 0; } }'
+    + '</style>'
+    + '</head><body>'
+    + '<div style="padding:14mm 14mm;min-height:297mm;box-sizing:border-box">'
+    + docHtml
+    + '</div>'
+    + '<script>window.onload=function(){window.print();}<\/script>'
+    + '</body></html>'
+  );
+  printWin.document.close();
 }
 
 
